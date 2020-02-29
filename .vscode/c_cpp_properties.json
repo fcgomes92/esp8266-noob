@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/home/gomes/workspace/ardunio/sketchbook/libraries/WebSockets/src",
+                "/home/gomes/.arduino15/packages/esp8266/hardware/esp8266/2.6.3/libraries/Hash/src",
+                "/home/gomes/workspace/ardunio/sketchbook/libraries/esp8266-websocketclient-master",
+                "/home/gomes/workspace/ardunio/sketchbook/libraries/ESP8266-Websocket-master",
+                "/home/gomes/workspace/ardunio/sketchbook/libraries/arduinoWebSockets-master/src",
+                "/home/gomes/.arduino15/packages/esp8266/tools/**",
+                "/home/gomes/.arduino15/packages/esp8266/hardware/esp8266/2.6.3/**"
+            ],
+            "forcedInclude": [],
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
