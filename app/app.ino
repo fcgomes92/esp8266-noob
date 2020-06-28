@@ -23,9 +23,9 @@ Adafruit_NeoPixel strip(PIXELS, PIN, NEO_GRB + NEO_KHZ800);
 boolean handshakeFailed = 0;
 String data = "";
 char path[] = "/"; //identifier of this device*-
-const char *ssid = "BatataFrita";
-const char *password = "batataassadaS2";
-char *host = "192.168.0.110"; //replace this ip address with the ip address of your Node.Js server
+const char *ssid = "";
+const char *password = "";
+char *host = ""; //replace this ip address with the ip address of your Node.Js server
 const int espport = 3000;\
 int isEffectActive = 1;
 int selectedEffect = 1;
