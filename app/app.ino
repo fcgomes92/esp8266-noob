@@ -105,23 +105,23 @@ void setup()
 }
 
 bool validRGB(int r, int g, int b) {
-  if (r < 0 || r > 254) return false;
-  if (g < 0 || g > 254) return false;
-  if (b < 0 || b > 254) return false;
+  if (r < 0 || r > 255) return false;
+  if (g < 0 || g > 255) return false;
+  if (b < 0 || b > 255) return false;
   return true;
 }
 
 
 bool validBrightness(int v) {
-  if (v < 0 || v > 254) return false;
+  if (v < 0 || v > 255) return false;
   return true;
 }
 
 void commandFill(DynamicJsonDocument doc)
 {
-  int r = doc["params"]["r"].as<int>();
-  int g = doc["params"]["g"].as<int>();
-  int b = doc["params"]["b"].as<int>();
+  int r = doc["r"].as<int>();
+  int g = doc["g"].as<int>();
+  int b = doc["b"].as<int>();
   if (validRGB(r,g,b)) {
     uint32_t color = strip.Color(r, g, b);
     strip.fill(color);
@@ -129,16 +129,40 @@ void commandFill(DynamicJsonDocument doc)
 }
 
 void setBrightness(DynamicJsonDocument doc) {
-  int brightness = doc["params"]["v"].as<int>();
+  int brightness = doc["v"].as<int>();
   if (validBrightness(brightness)) {
     strip.setBrightness(brightness);
   }
 }
 
-void selectEffect(DynamicJsonDocument doc) {
-  selectedEffect = doc["params"]["v"].as<int>();
+void toggleEffect(DynamicJsonDocument doc) {
+  selectedEffect = doc["v"].as<int>();
+  isEffectActive = doc["s"].as<bool>();
+  Serial.println("Set effect to: " + String(isEffectActive));
+  Serial.println("Selected effect: " + String(selectedEffect));
 }
 
+void setPixels(DynamicJsonDocument doc) {
+   int r = doc["r"].as<int>();
+   int g = doc["g"].as<int>();
+   int b = doc["b"].as<int>();
+   if (!validRGB(r,g,b)) {
+    Serial.println("Error creating color: " + String(r) + ", " + String(g) + ", " + String(b));
+    return;
+   }
+   uint32_t color = strip.Color(r, g, b);
+   // start pixel
+   int s = doc["s"].as<int>();
+   // end pixel
+   int e = doc["e"].as<int>();
+   // from start (s) pixel to end (e) pixel 
+   for (int i = s ; i < e ; i++) {
+    strip.setPixelColor(i, color);
+  }
+}
+
+//const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2) + 60;
+const size_t capacity = JSON_OBJECT_SIZE(8) + JSON_ARRAY_SIZE(4) + 60;
 void loop()
 {
   if (client.connected())
@@ -147,7 +171,6 @@ void loop()
     webSocketClient.getData(data);
     if (data.length() > 0)
     {
-      const size_t capacity = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2) + 60;
       DynamicJsonDocument doc(capacity);
       Serial.println(data);
       DeserializationError error = deserializeJson(doc, data);
@@ -158,9 +181,7 @@ void loop()
       }
       else
       {
-        long command = doc["command"];
-        Serial.println(command);
-        switch (command)
+        switch (doc["c"].as<int>())
         {
         case 0:
           commandFill(doc);
@@ -172,10 +193,10 @@ void loop()
           strip.clear();
           break;
         case 3:
-          isEffectActive = !isEffectActive;
+          toggleEffect(doc);
           break;
         case 4:
-          selectEffect(doc);
+          setPixels(doc);
           break;
         }
         strip.show();
@@ -198,6 +219,13 @@ void loop()
       switch(selectedEffect) {
         case 1:
           rainbow(25);
+          break;
+        case 2:
+          CylonBounce(0xff, 0, 0, 4, 10, 50);
+          break;
+        case 3:
+          meteorRain(0xff,0xff,0xff,10, 64, true, 30);
+          break;   
       }
     }
 }
@@ -242,4 +270,114 @@ void wsconnect()
     }
     handshakeFailed = 1;
   }
+}
+
+
+void meteorRain(byte red, byte green, byte blue, byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay, int SpeedDelay) {  
+  setAll(0,0,0);
+ 
+  for(int i = 0; i < strip.numPixels()+strip.numPixels(); i++) {
+   
+   
+    // fade brightness all LEDs one step
+    for(int j=0; j<strip.numPixels(); j++) {
+      if( (!meteorRandomDecay) || (random(10)>5) ) {
+        fadeToBlack(j, meteorTrailDecay );        
+      }
+    }
+   
+    // draw meteor
+    for(int j = 0; j < meteorSize; j++) {
+      if( ( i-j <strip.numPixels()) && (i-j>=0) ) {
+        setPixel(i-j, red, green, blue);
+      }
+    }
+   
+    showStrip();
+    delay(SpeedDelay);
+  }
+}
+
+void fadeToBlack(int ledNo, byte fadeValue) {
+ #ifdef ADAFRUIT_NEOPIXEL_H
+    // NeoPixel
+    uint32_t oldColor;
+    uint8_t r, g, b;
+    int value;
+   
+    oldColor = strip.getPixelColor(ledNo);
+    r = (oldColor & 0x00ff0000UL) >> 16;
+    g = (oldColor & 0x0000ff00UL) >> 8;
+    b = (oldColor & 0x000000ffUL);
+
+    r=(r<=10)? 0 : (int) r-(r*fadeValue/256);
+    g=(g<=10)? 0 : (int) g-(g*fadeValue/256);
+    b=(b<=10)? 0 : (int) b-(b*fadeValue/256);
+   
+    strip.setPixelColor(ledNo, r,g,b);
+ #endif
+ #ifndef ADAFRUIT_NEOPIXEL_H
+   // FastLED
+   leds[ledNo].fadeToBlackBy( fadeValue );
+ #endif  
+}
+
+void CylonBounce(byte red, byte green, byte blue, int EyeSize, int SpeedDelay, int ReturnDelay){
+
+  for(int i = 0; i < strip.numPixels()-EyeSize-2; i++) {
+    setAll(0,0,0);
+    setPixel(i, red/10, green/10, blue/10);
+    for(int j = 1; j <= EyeSize; j++) {
+      setPixel(i+j, red, green, blue);
+    }
+    setPixel(i+EyeSize+1, red/10, green/10, blue/10);
+    showStrip();
+    delay(SpeedDelay);
+  }
+
+  delay(ReturnDelay);
+
+  for(int i = strip.numPixels()-EyeSize-2; i > 0; i--) {
+    setAll(0,0,0);
+    setPixel(i, red/10, green/10, blue/10);
+    for(int j = 1; j <= EyeSize; j++) {
+      setPixel(i+j, red, green, blue);
+    }
+    setPixel(i+EyeSize+1, red/10, green/10, blue/10);
+    showStrip();
+    delay(SpeedDelay);
+  }
+ 
+  delay(ReturnDelay);
+}
+
+void showStrip() {
+ #ifdef ADAFRUIT_NEOPIXEL_H
+   // NeoPixel
+   strip.show();
+ #endif
+ #ifndef ADAFRUIT_NEOPIXEL_H
+   // FastLED
+   FastLED.show();
+ #endif
+}
+
+void setPixel(int Pixel, byte red, byte green, byte blue) {
+ #ifdef ADAFRUIT_NEOPIXEL_H
+   // NeoPixel
+   strip.setPixelColor(Pixel, strip.Color(red, green, blue));
+ #endif
+ #ifndef ADAFRUIT_NEOPIXEL_H
+   // FastLED
+   leds[Pixel].r = red;
+   leds[Pixel].g = green;
+   leds[Pixel].b = blue;
+ #endif
+}
+
+void setAll(byte red, byte green, byte blue) {
+  for(int i = 0; i < strip.numPixels(); i++ ) {
+    setPixel(i, red, green, blue);
+  }
+  showStrip();
 }

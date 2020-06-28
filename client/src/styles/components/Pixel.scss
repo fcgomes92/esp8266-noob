@@ -1,0 +1,44 @@
+.pixel {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eae0c8;
+  background: linear-gradient(to bottom, #eae0c8 0%, #dbd1b9 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#EAE0C8', endColorstr='#DBD1B9', GradientType=0);
+  border: 1px solid #ccc2aa;
+  box-shadow: inset 0 1px 0 #f9efd7;
+  position: relative;
+  &__led {
+    border-radius: 0.3rem;
+    width: 75%;
+    height: 75%;
+    border: 1px solid #ccc2aa;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &__label {
+      font-weight: 600;
+      font-size: 0.7rem;
+      line-height: 160%;
+    }
+  }
+  &__color-picker {
+    position: absolute;
+    top: 130%;
+    left: -0.5rem;
+    z-index: 2;
+    &__cover {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+  }
+}
