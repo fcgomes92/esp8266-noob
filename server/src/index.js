@@ -1,7 +1,7 @@
-import { Server as WebSocketServer, OPEN } from "ws";
-import http from "http";
-import express from "express";
 import cors from "cors";
+import express from "express";
+import http from "http";
+import { OPEN, Server as WebSocketServer } from "ws";
 
 const COMMANDS = {
   fill: 0,
@@ -9,6 +9,7 @@ const COMMANDS = {
   clear: 2,
   toggleEffect: 3,
   setPixels: 4,
+  getState: 5,
 };
 
 const EFFECTS = {
@@ -54,15 +55,30 @@ const server = http.createServer(app);
 
 const wss = new WebSocketServer({ server });
 
+function toRGB(rgb) {
+  return {
+    r: (rgb >> 16) & 0xff,
+    g: (rgb >> 8) & 0xff,
+    b: rgb & 0xff,
+  };
+}
+
 wss.on("connection", function connection(ws) {
   console.log("new client connected");
-  // ws.on("message", function incoming(message) {
-  //   console.log("received: %s", message);
-  // });
+  ws.on("message", function incoming(message) {
+    const { pixels, effect } = JSON.parse(message);
+    if (pixels) {
+      ws.pixels = pixels.map((v) => toRGB(v));
+      ws.effect = { on: false, selected: null };
+    }
+    if (effect) {
+      ws.pixels = [];
+      ws.effect = { on: true, selected: Object.keys(EFFECTS)[effect - 1] };
+    }
+  });
   ws.on("close", () => {
     console.log("Connection lost");
   });
-  clear();
 });
 
 app.get("/", (req, res) => {
@@ -111,8 +127,29 @@ app.get("/", (req, res) => {
         params: { v: EFFECTS.meteor, s: true },
       });
       break;
+    case "state":
+      sendCommandToStrip({
+        command: COMMANDS.getState,
+      });
+      break;
   }
+  sendCommandToStrip({
+    command: COMMANDS.getState,
+  });
   res.json({});
+});
+
+app.get("/state", (req, res) => {
+  let state = {};
+  sendCommandToStrip({
+    command: COMMANDS.getState,
+  });
+  wss.clients.forEach((ws) => {
+    if (ws.readyState === OPEN) {
+      state = { pixels: ws.pixels, effect: ws.effect };
+    }
+  });
+  res.json(state);
 });
 
 server.listen(3000, () => {

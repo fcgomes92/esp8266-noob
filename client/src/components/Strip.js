@@ -1,8 +1,8 @@
+import axios from "axios";
 import React from "react";
 import { ChromePicker } from "react-color";
 import "../styles/components/Strip.scss";
 import Pixel from "./Pixel";
-import axios from "axios";
 
 const chunk = (arr, size) => {
   return [...arr].reduce(
@@ -29,6 +29,9 @@ export default function Strip({ total = 10, hidePixelLabel = false }) {
   const [pixels, setPixels] = React.useState(createPixelArray());
   const [isPaintOn, setIsPaintOn] = React.useState(false);
   const [paintColor, setPaintColor] = React.useState(baseColor);
+  React.useEffect(async () => {
+    const { pixels } = await axios.get("http://localhost:3000/state");
+  }, []);
   React.useEffect(() => {
     setPixels(createPixelArray());
   }, [total]);
