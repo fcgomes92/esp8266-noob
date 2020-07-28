@@ -11,6 +11,9 @@
 #define PIN D2
 #define PIXELS 144
 #define DEBUG false //if enabled this increases the latency
+#define LOG(...) \
+  if (DEBUG)     \
+  Serial.println(__VA_ARGS__)
 Adafruit_NeoPixel strip(PIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 int isEffectActive = 1;
@@ -23,7 +26,7 @@ char connectionPath[] = "/";
 char *ssid = "BatataFrita";
 char *password = "batataassadaS2";
 const int espport = 3000;
-char *host = "192.168.0.110";
+char *host = "manhattan.local";
 WebSocketClient webSocketClient;
 WiFiClient client;
 
@@ -39,22 +42,22 @@ void wsConnect()
   // Connect to the websocket server
   if (client.connect(host, espport))
   {
-    Serial.println("Connected");
+    LOG("Connected");
     webSocketClient.host = host;
     webSocketClient.path = connectionPath;
     if (webSocketClient.handshake(client))
     {
-      Serial.println("Handshake successful");
+      LOG("Handshake successful");
       getStripState();
     }
     else
     {
-      Serial.println("Handshake failed.");
+      LOG("Handshake failed.");
     }
   }
   else
   {
-    Serial.println("Connection failed.");
+    LOG("Connection failed.");
   }
 }
 
@@ -69,10 +72,10 @@ void setup()
 
   delay(10);
 
-  Serial.println();
-  Serial.println();
+  LOG();
+  LOG();
   Serial.print("Connecting to ");
-  Serial.println(ssid);
+  LOG(ssid);
 
   WiFi.begin(ssid, password);
 
@@ -81,10 +84,10 @@ void setup()
     delay(500);
     Serial.print(".");
   }
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
+  LOG("");
+  LOG("WiFi connected");
+  LOG("IP address: ");
+  LOG(WiFi.localIP());
   delay(750);
   wsConnect();
 }
@@ -101,12 +104,12 @@ void handleData()
       if (data.length() > 0)
       {
         DynamicJsonDocument doc(jsonReceiveDataCapacity);
-        Serial.println(data);
+        LOG(data);
         DeserializationError error = deserializeJson(doc, data);
         if (error)
         {
           Serial.print(F("deserializeJson() failed: "));
-          Serial.println(error.c_str());
+          LOG(error.c_str());
         }
         else
         {
