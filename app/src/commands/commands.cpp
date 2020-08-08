@@ -1,6 +1,6 @@
 #include "commands.h"
 
-void getStripState(WebSocketClient webSocketClient, Adafruit_NeoPixel* strip, bool isEffectActive, int selectedEffect)
+String getStripState(Adafruit_NeoPixel* strip, bool isEffectActive, int selectedEffect)
 {
     String output;
     DynamicJsonDocument doc(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(144) + JSON_OBJECT_SIZE(1));
@@ -18,24 +18,26 @@ void getStripState(WebSocketClient webSocketClient, Adafruit_NeoPixel* strip, bo
     }
     serializeJson(doc, output);
     //    serializeJson(doc, Serial);
-    webSocketClient.sendData(output);
+    return output;
 }
 
-void setPixel(Adafruit_NeoPixel* strip, int pixel, byte red, byte green, byte blue)
+String setPixel(Adafruit_NeoPixel* strip, int pixel, byte red, byte green, byte blue)
 {
     strip->setPixelColor(pixel, strip->Color(red, green, blue));
+    return "{}";
 }
 
-void setAll(Adafruit_NeoPixel* strip, byte red, byte green, byte blue)
+String setAll(Adafruit_NeoPixel* strip, byte red, byte green, byte blue)
 {
     for (int i = 0; i < strip->numPixels(); i++)
     {
         setPixel(strip, i, red, green, blue);
     }
     showStrip(strip);
+    return "{}";
 }
 
-void commandFill(WebSocketClient webSocketClient, Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
+String commandFill(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
 {
     int r = doc["r"].as<int>();
     int g = doc["g"].as<int>();
@@ -45,26 +47,30 @@ void commandFill(WebSocketClient webSocketClient, Adafruit_NeoPixel* strip, Dyna
         uint32_t color = strip->Color(r, g, b);
         strip->fill(color);
     }
+    return "{}";
 }
 
-void setBrightness(WebSocketClient webSocketClient, Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
+String setBrightness(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
 {
     int brightness = doc["v"].as<int>();
     if (validBrightness(brightness))
     {
         strip->setBrightness(brightness);
     }
+    return "{}";
 }
 
-void toggleEffect(WebSocketClient webSocketClient, Adafruit_NeoPixel* strip, DynamicJsonDocument doc, bool* isEffectActive, int* selectedEffect)
+String toggleEffect(Adafruit_NeoPixel* strip, DynamicJsonDocument doc, bool* isEffectActive, int* selectedEffect)
 {
     *selectedEffect = doc["v"].as<int>();
     *isEffectActive = doc["s"].as<bool>();
     Serial.println("Set effect to: " + String(*isEffectActive));
     Serial.println("Selected effect: " + String(*selectedEffect));
+    String output("{\"effect\": \""+String(*selectedEffect)+"\",\"status\": \""+(*isEffectActive ? "true" : "false")+"\" }");
+    return output;
 }
 
-void setPixels(WebSocketClient webSocketClient, Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
+String setPixels(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
 {
     int r = doc["r"].as<int>();
     int g = doc["g"].as<int>();
@@ -72,7 +78,7 @@ void setPixels(WebSocketClient webSocketClient, Adafruit_NeoPixel* strip, Dynami
     if (!validRGB(r, g, b))
     {
         Serial.println("Error creating color: " + String(r) + ", " + String(g) + ", " + String(b));
-        return;
+        return "{\"error\": \"error creating color\"}";
     }
     uint32_t color = strip->Color(r, g, b);
     // start pixel
@@ -83,5 +89,7 @@ void setPixels(WebSocketClient webSocketClient, Adafruit_NeoPixel* strip, Dynami
     for (int i = s; i < e; i++)
     {
         strip->setPixelColor(i, color);
+        strip->show();
     }
+    return "{}";
 }
