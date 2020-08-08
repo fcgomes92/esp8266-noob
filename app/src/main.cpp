@@ -34,8 +34,8 @@ PubSubClient client(espClient);
 
 typedef struct
 {
-    char* topic = (char*)"esp8266/lights";
-    char* responseTopic = (char *)"esp8266/lights/state";
+    char* topicName =(char*)"main-strip";
+    char* topicPath  = (char*)"office/lights";
     char* host = (char *)"berry.local";
     int port = 1883;
     int pixels = 144;
@@ -47,6 +47,16 @@ Config config;
 // Handle data definition
 const size_t jsonReceiveDataCapacity = JSON_OBJECT_SIZE(8) + JSON_ARRAY_SIZE(4) + 60;
 
+void publish(PubSubClient *client, Config *config, char * payload) {
+    client->publish(String((String)config->topicPath + "/status").c_str(), payload);
+    client->publish(String((String)config->topicPath + "/" + (String)config->topicName + "/status").c_str(), payload);
+}
+
+void subscribe(PubSubClient *client, Config *config) {
+    client->subscribe(String((String)config->topicPath).c_str());
+    client->subscribe(String((String)config->topicPath + "/" + (String)config->topicName).c_str());
+}
+
 void connectToBroker()
 {
     if (!client.connected()) {
@@ -55,9 +65,7 @@ void connectToBroker()
 
             if (client.connect("esp8266-client")) {
                 LOG("connected");
-                client.subscribe(config.topic);
-                String output = getStripState(strip, isEffectActive, selectedEffect);
-                client.publish(config.responseTopic, const_cast<char*>(output.c_str()));
+                subscribe(&client, &config);
             }
             else {
 
@@ -81,36 +89,39 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     else
     {
-        String output = "{}";
+        DynamicJsonDocument outputDoc(JSON_OBJECT_SIZE(4) + JSON_ARRAY_SIZE(144) + JSON_OBJECT_SIZE(1));
+        String output;
 
         LOG("################");
         serializeJson(doc, Serial);
         LOG("\n----------------");
-        
+
         switch (doc["c"].as<int>())
         {
         case 0:
-            output = commandFill(strip, doc);
+            outputDoc = commandFill(strip, doc);
             break;
         case 1:
-            output = setBrightness(strip, doc);
+            outputDoc = setBrightness(strip, doc);
             break;
         case 2:
             strip->clear();
             break;
         case 3:
-            output = toggleEffect(strip, doc, &isEffectActive, &selectedEffect);
+            outputDoc = toggleEffect(strip, doc, &isEffectActive, &selectedEffect);
             break;
         case 4:
-            output = setPixels(strip, doc);
+            outputDoc = setPixels(strip, doc);
             break;
         case 5:
-            output = getStripState(strip, isEffectActive, selectedEffect);
+            outputDoc = getStripState(strip, isEffectActive, selectedEffect);
             break;
         }
         strip->show();
+        outputDoc["id"] = config.topicName;
+        serializeJson(outputDoc, output);
         LOG(output);
-        client.publish(config.responseTopic, output.c_str());
+        publish(&client, &config, const_cast<char*>(output.c_str()));
     }
     LOG("################");
 }
@@ -135,9 +146,10 @@ void logConfig(Config *config)
 {
     LOG("### PIXELS: " + (String)config->pixels);
     LOG("### ENABLE PORTAL: " + (String)config->enablePortal);
-    LOG("### HOST: " + (String)config->host);
-    LOG("### ESPPORT: " + (String)config->port);
-    LOG("### CON PATH: " + (String)config->topic);
+    LOG("### BROKER HOST: " + (String)config->host);
+    LOG("### PORT: " + (String)config->port);
+    LOG("### TOPIC NAME: " + (String)config->topicName);
+    LOG("### TOPIC PATH: " + (String)config->topicPath);
     LOG("### Size: " + (String)sizeof(*config));
 }
 

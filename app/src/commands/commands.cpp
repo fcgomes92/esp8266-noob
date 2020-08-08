@@ -1,8 +1,7 @@
 #include "commands.h"
 
-String getStripState(Adafruit_NeoPixel* strip, bool isEffectActive, int selectedEffect)
+DynamicJsonDocument getStripState(Adafruit_NeoPixel* strip, bool isEffectActive, int selectedEffect)
 {
-    String output;
     DynamicJsonDocument doc(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(144) + JSON_OBJECT_SIZE(1));
     if (isEffectActive)
     {
@@ -16,28 +15,27 @@ String getStripState(Adafruit_NeoPixel* strip, bool isEffectActive, int selected
             doc["pixels"][i] = strip->getPixelColor(i);
         }
     }
-    serializeJson(doc, output);
     //    serializeJson(doc, Serial);
-    return output;
+    return doc;
 }
 
-String setPixel(Adafruit_NeoPixel* strip, int pixel, byte red, byte green, byte blue)
+DynamicJsonDocument setPixel(Adafruit_NeoPixel* strip, int pixel, byte red, byte green, byte blue)
 {
     strip->setPixelColor(pixel, strip->Color(red, green, blue));
-    return "{}";
+    return DynamicJsonDocument(JSON_OBJECT_SIZE(1));
 }
 
-String setAll(Adafruit_NeoPixel* strip, byte red, byte green, byte blue)
+DynamicJsonDocument setAll(Adafruit_NeoPixel* strip, byte red, byte green, byte blue)
 {
     for (int i = 0; i < strip->numPixels(); i++)
     {
         setPixel(strip, i, red, green, blue);
     }
     showStrip(strip);
-    return "{}";
+    return DynamicJsonDocument(JSON_OBJECT_SIZE(1));
 }
 
-String commandFill(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
+DynamicJsonDocument commandFill(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
 {
     int r = doc["r"].as<int>();
     int g = doc["g"].as<int>();
@@ -47,38 +45,36 @@ String commandFill(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
         uint32_t color = strip->Color(r, g, b);
         strip->fill(color);
     }
-    return "{}";
+    return doc;
 }
 
-String setBrightness(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
+DynamicJsonDocument setBrightness(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
 {
     int brightness = doc["v"].as<int>();
     if (validBrightness(brightness))
     {
         strip->setBrightness(brightness);
     }
-    return "{}";
+    return doc;
 }
 
-String toggleEffect(Adafruit_NeoPixel* strip, DynamicJsonDocument doc, bool* isEffectActive, int* selectedEffect)
+DynamicJsonDocument toggleEffect(Adafruit_NeoPixel* strip, DynamicJsonDocument doc, bool* isEffectActive, int* selectedEffect)
 {
     *selectedEffect = doc["v"].as<int>();
     *isEffectActive = doc["s"].as<bool>();
-    Serial.println("Set effect to: " + String(*isEffectActive));
-    Serial.println("Selected effect: " + String(*selectedEffect));
-    String output("{\"effect\": \""+String(*selectedEffect)+"\",\"status\": \""+(*isEffectActive ? "true" : "false")+"\" }");
-    return output;
+    return doc;
 }
 
-String setPixels(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
+DynamicJsonDocument setPixels(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
 {
     int r = doc["r"].as<int>();
     int g = doc["g"].as<int>();
     int b = doc["b"].as<int>();
     if (!validRGB(r, g, b))
     {
-        Serial.println("Error creating color: " + String(r) + ", " + String(g) + ", " + String(b));
-        return "{\"error\": \"error creating color\"}";
+        doc["error"] = "true";
+        doc["message"] = "Error creating color: " + String(r) + ", " + String(g) + ", " + String(b);
+        return doc;
     }
     uint32_t color = strip->Color(r, g, b);
     // start pixel
@@ -91,5 +87,5 @@ String setPixels(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
         strip->setPixelColor(i, color);
         strip->show();
     }
-    return "{}";
+    return doc;
 }
