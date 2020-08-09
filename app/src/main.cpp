@@ -26,7 +26,7 @@ const int EEPROM_ADDR = 0;
 WiFiManager wm;
 Adafruit_NeoPixel *strip;
 
-int selectedEffect = 1;
+int selectedEffect = 4;
 boolean isEffectActive = true;
 
 WiFiClient espClient;
@@ -34,7 +34,7 @@ PubSubClient client(espClient);
 
 typedef struct
 {
-    char* topicName =(char*)"main-strip";
+    char* topicName =(char*)"mainStrip";
     char* topicPath  = (char*)"office/lights";
     char* host = (char *)"berry.local";
     int port = 1883;
@@ -63,9 +63,14 @@ void connectToBroker()
         while (!client.connected()) {
             LOG("Connecting to MQTT...");
 
-            if (client.connect("esp8266-client")) {
-                LOG("connected");
+            if (client.connect(String("esp8266-client-" + (String)config.topicName).c_str())) {
                 subscribe(&client, &config);
+                String output;
+                DynamicJsonDocument doc = getStripState(strip, isEffectActive, selectedEffect);
+                doc["id"] = config.topicName;
+                serializeJson(doc, output);
+                publish(&client, &config, const_cast<char*>(output.c_str()));
+                LOG("connected");
             }
             else {
 
@@ -167,7 +172,7 @@ void setup()
     WiFi.setSleepMode(WIFI_NONE_SLEEP); // disable sleep, can improve ap stability
     wm.setClass("invert");
     wm.setCountry("US");
-    wm.setHostname("esp8266.local");
+    wm.setHostname(String("esp8266-"+(String)config.topicName+".local").c_str());
     wm.setConfigPortalTimeout(120);
     wm.setConnectTimeout(60);
     wm.setBreakAfterConfig(true);
@@ -180,7 +185,7 @@ void setup()
     {
         Serial.println("CONFIG ENABLED");
         wm.setConfigPortalTimeout(180);
-        wm.startConfigPortal("WM_ConnectAP");
+        wm.startConfigPortal(String("WM_ConnectAP_" + (String)config.topicName).c_str());
     }
     else
     {
@@ -195,6 +200,7 @@ void setup()
 
         delay(250);
         connectToBroker();
+        delay(250);
     }
     wifiInfo(&wm);
     delay(500);
@@ -204,16 +210,47 @@ void setup()
     #endif
 }
 
+// breathing pixel variables
+unsigned long startTime = 0;
+int colorR = 150, colorG = 0, colorB = 200;
+int breathTime = 9000; // 6000ms = six seconds; adjust for your desired speed
+float breathTimeFloat = breathTime;
+float pi = 3.14;
+
+// initialize the breath timer
+void startBreath() {
+    startTime = millis();
+    strip->fill(strip->Color(colorR, colorG, colorB));
+    strip->show();
+}
+
+// call this inside your loop to update the color of the pixels
+void updateBreath() {
+    const float pi = 3.14;
+    float frac; // ratio of color to use, based on time
+    int r, g, b;
+
+    // calculate a brightness fraction, based on a sine curve changing over time from 0 to 1 and back
+    frac = (sin((((millis() - startTime) % breathTime)/breathTimeFloat - 0.25f) * 2.0f * pi) + 1.0f)/2.0f;
+
+    // multiply each color by the brightness fraction
+    r = colorR * frac;
+    g = colorG * frac;
+    b = colorB * frac;
+
+    strip->fill(strip->Color(r, g, b));
+    strip->show();
+}
+
 void loop()
 {
-    connectToBroker();
     client.loop();
     if (isEffectActive)
     {
         switch (selectedEffect)
         {
         case 1:
-            rainbow(strip, 25);
+            doubleRainbow(strip, 32);
             break;
         case 2:
             config.enablePortal = true;
@@ -224,6 +261,10 @@ void loop()
         case 3:
             meteorRain(strip, 0xff, 0xff, 0xff, 10, 64, true, 30);
             break;
+        case 4:
+            updateBreath();
+            break;
         }
     }
+    connectToBroker();
 }

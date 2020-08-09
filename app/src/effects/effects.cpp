@@ -34,6 +34,23 @@ const void rainbow(Adafruit_NeoPixel *strip, uint8_t wait)
     }
 }
 
+const void doubleRainbow(Adafruit_NeoPixel *strip, uint8_t wait)
+{
+    uint16_t i = 0;
+    uint16_t j = 0;
+    int size = strip->numPixels() / 2 - 1;
+    for (j = 0; j < 256; j++)
+    {
+        for (i = 0; i < size; i++)
+        {
+            strip->setPixelColor(i, Wheel(strip, (i + j) & 255));
+            strip->setPixelColor(size * 2 - i, Wheel(strip, (i + j) & 255));
+        }
+        strip->show();
+        delay(wait);
+    }
+}
+
 void meteorRain(Adafruit_NeoPixel *strip, byte red, byte green, byte blue, byte meteorSize, byte meteorTrailDecay, boolean meteorRandomDecay, int SpeedDelay)
 {
     setAll(strip, 0, 0, 0);
@@ -62,40 +79,6 @@ void meteorRain(Adafruit_NeoPixel *strip, byte red, byte green, byte blue, byte 
         showStrip(strip);
         delay(SpeedDelay);
     }
-}
-
-void CylonBounce(Adafruit_NeoPixel *strip, byte red, byte green, byte blue, int EyeSize, int SpeedDelay, int ReturnDelay)
-{
-
-    for (int i = 0; i < strip->numPixels() - EyeSize - 2; i++)
-    {
-        setAll(strip, 0, 0, 0);
-        setPixel(strip, i, red / 10, green / 10, blue / 10);
-        for (int j = 1; j <= EyeSize; j++)
-        {
-            setPixel(strip, i + j, red, green, blue);
-        }
-        setPixel(strip, i + EyeSize + 1, red / 10, green / 10, blue / 10);
-        showStrip(strip);
-        delay(SpeedDelay);
-    }
-
-    delay(ReturnDelay);
-
-    for (int i = strip->numPixels() - EyeSize - 2; i > 0; i--)
-    {
-        setAll(strip, 0, 0, 0);
-        setPixel(strip, i, red / 10, green / 10, blue / 10);
-        for (int j = 1; j <= EyeSize; j++)
-        {
-            setPixel(strip, i + j, red, green, blue);
-        }
-        setPixel(strip, i + EyeSize + 1, red / 10, green / 10, blue / 10);
-        showStrip(strip);
-        delay(SpeedDelay);
-    }
-
-    delay(ReturnDelay);
 }
 
 void showStrip(Adafruit_NeoPixel *strip)

@@ -80,18 +80,11 @@ function App() {
           onChange={async ({ rgb: { r, g, b, a } }) => {
             setFillColor({ rgb: { r, g, b, a } });
             Promise.all([
-              axios.get("http://localhost:3000/", {
+              axios.get("http://localhost:3000/fill", {
                 params: {
-                  command: "fill",
                   r,
                   g,
                   b,
-                },
-              }),
-              axios.get("http://localhost:3000/", {
-                params: {
-                  command: "brightness",
-                  v: 255 * a,
                 },
               }),
             ]);

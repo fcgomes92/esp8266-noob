@@ -29,9 +29,6 @@ export default function Strip({ total = 10, hidePixelLabel = false }) {
   const [pixels, setPixels] = React.useState(createPixelArray());
   const [isPaintOn, setIsPaintOn] = React.useState(false);
   const [paintColor, setPaintColor] = React.useState(baseColor);
-  React.useEffect(async () => {
-    const { pixels } = await axios.get("http://localhost:3000/state");
-  }, []);
   React.useEffect(() => {
     setPixels(createPixelArray());
   }, [total]);
@@ -56,9 +53,8 @@ export default function Strip({ total = 10, hidePixelLabel = false }) {
         [{ s: 0, e: 0, ...baseColor.rgb }]
       )
       .map(async (command) => {
-        return axios.get("http://localhost:3000/", {
+        return axios.get("http://localhost:3000/pixels", {
           params: {
-            command: "setPixels",
             ...command,
           },
         });
