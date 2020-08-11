@@ -8,6 +8,10 @@ export default {
         type: 'string',
         primary: true,
       },
+      path: {
+        type: 'string',
+        default: '',
+      },
       isEffectActive: {
         type: 'boolean',
         default: true,

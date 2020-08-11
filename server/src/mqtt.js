@@ -11,7 +11,7 @@ export const COMMANDS = {
   getState: 5,
 };
 
-export const configureMQTT = async db => {
+export const getMQTTClient = async db => {
   if (client) return client;
   client = mqtt.connect(process.env.MQTT_URL);
   client.on('message', async (topic, payload) => {
@@ -23,6 +23,7 @@ export const configureMQTT = async db => {
           if (data.id)
             await db.lights.upsert({
               id: data.id,
+              path: topic.replace('/status', ''),
               ...(data.effect ? { selectedEffect: data.effect } : {}),
             });
           break;

@@ -8,7 +8,7 @@ addRxPlugin(PouchAdapterHttp);
 
 let db;
 
-export const createDatabase = async () => {
+export const getDatabaseClient = async () => {
   if (db) return db;
   try {
     db = await createRxDatabase({
