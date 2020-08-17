@@ -4,6 +4,7 @@
 #ifdef __AVR__
 #include <avr/power.h>
 #endif
+#include <ArduinoOTA.h>
 #include <WiFiManager.h>
 #include <Adafruit_NeoPixel.h>
 #include <ArduinoJson.h>
@@ -142,9 +143,9 @@ void saveWifiCallback()
 void wifiInfo(WiFiManager *wm)
 {
     WiFi.printDiag(Serial);
-    Serial.println("SAVED: " + (String)wm->getWiFiIsSaved() ? "YES" : "NO");
-    Serial.println("SSID: " + (String)wm->getWiFiSSID());
-    Serial.println("PASS: " + (String)wm->getWiFiPass());
+    LOG("SAVED: " + (String)wm->getWiFiIsSaved() ? "YES" : "NO");
+    LOG("SSID: " + (String)wm->getWiFiSSID());
+    LOG("PASS: " + (String)wm->getWiFiPass());
 }
 
 void logConfig(Config *config)
@@ -183,7 +184,7 @@ void setup()
 
     if (!wm.autoConnect() || config.enablePortal)
     {
-        Serial.println("CONFIG ENABLED");
+        LOG("CONFIG ENABLED");
         wm.setConfigPortalTimeout(180);
         wm.startConfigPortal(String("WM_ConnectAP_" + (String)config.topicName).c_str());
     }
@@ -201,13 +202,35 @@ void setup()
         delay(250);
         connectToBroker();
         delay(250);
+
+
+
+        ArduinoOTA.setHostname(String("ESP8266" + (String)config.topicName).c_str());
+        ArduinoOTA.setPassword("esp8266");
+
+        ArduinoOTA.onStart([]() {
+            LOG("Start");
+            });
+        ArduinoOTA.onEnd([]() {
+            LOG("\nEnd");
+            });
+        ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+            Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+            });
+        ArduinoOTA.onError([](ota_error_t error) {
+            Serial.printf("Error[%u]: ", error);
+            if (error == OTA_AUTH_ERROR) LOG("Auth Failed");
+            else if (error == OTA_BEGIN_ERROR) LOG("Begin Failed");
+            else if (error == OTA_CONNECT_ERROR) LOG("Connect Failed");
+            else if (error == OTA_RECEIVE_ERROR) LOG("Receive Failed");
+            else if (error == OTA_END_ERROR) LOG("End Failed");
+            });
+        ArduinoOTA.begin();
+        LOG("OTA ready");
+
     }
     wifiInfo(&wm);
     delay(500);
-
-    #ifdef USEOTA
-    ArduinoOTA.begin();
-    #endif
 }
 
 // breathing pixel variables
@@ -244,6 +267,7 @@ void updateBreath() {
 
 void loop()
 {
+    ArduinoOTA.handle();
     client.loop();
     if (isEffectActive)
     {
