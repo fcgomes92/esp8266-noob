@@ -1,6 +1,7 @@
 #include "commands.h"
+#include "../effects/breath.h"
 
-DynamicJsonDocument getStripState(Adafruit_NeoPixel* strip, bool isEffectActive, int selectedEffect)
+DynamicJsonDocument getStripState(Adafruit_NeoPixel *strip, bool isEffectActive, int selectedEffect)
 {
     DynamicJsonDocument doc(JSON_OBJECT_SIZE(1) + JSON_ARRAY_SIZE(144) + JSON_OBJECT_SIZE(1));
     if (isEffectActive)
@@ -19,13 +20,13 @@ DynamicJsonDocument getStripState(Adafruit_NeoPixel* strip, bool isEffectActive,
     return doc;
 }
 
-DynamicJsonDocument setPixel(Adafruit_NeoPixel* strip, int pixel, byte red, byte green, byte blue)
+DynamicJsonDocument setPixel(Adafruit_NeoPixel *strip, int pixel, byte red, byte green, byte blue)
 {
     strip->setPixelColor(pixel, strip->Color(red, green, blue));
     return DynamicJsonDocument(JSON_OBJECT_SIZE(1));
 }
 
-DynamicJsonDocument setAll(Adafruit_NeoPixel* strip, byte red, byte green, byte blue)
+DynamicJsonDocument setAll(Adafruit_NeoPixel *strip, byte red, byte green, byte blue)
 {
     for (int i = 0; i < strip->numPixels(); i++)
     {
@@ -35,7 +36,7 @@ DynamicJsonDocument setAll(Adafruit_NeoPixel* strip, byte red, byte green, byte 
     return DynamicJsonDocument(JSON_OBJECT_SIZE(1));
 }
 
-DynamicJsonDocument commandFill(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
+DynamicJsonDocument commandFill(Adafruit_NeoPixel *strip, DynamicJsonDocument doc)
 {
     int r = doc["r"].as<int>();
     int g = doc["g"].as<int>();
@@ -48,7 +49,7 @@ DynamicJsonDocument commandFill(Adafruit_NeoPixel* strip, DynamicJsonDocument do
     return doc;
 }
 
-DynamicJsonDocument setBrightness(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
+DynamicJsonDocument setBrightness(Adafruit_NeoPixel *strip, DynamicJsonDocument doc)
 {
     int brightness = doc["v"].as<int>();
     if (validBrightness(brightness))
@@ -58,14 +59,13 @@ DynamicJsonDocument setBrightness(Adafruit_NeoPixel* strip, DynamicJsonDocument 
     return doc;
 }
 
-DynamicJsonDocument toggleEffect(Adafruit_NeoPixel* strip, DynamicJsonDocument doc, bool* isEffectActive, int* selectedEffect)
+DynamicJsonDocument toggleEffect(Adafruit_NeoPixel *strip, DynamicJsonDocument doc, bool *isEffectActive, int *selectedEffect)
 {
     *selectedEffect = doc["v"].as<int>();
     *isEffectActive = doc["s"].as<bool>();
     return doc;
 }
-
-DynamicJsonDocument setPixels(Adafruit_NeoPixel* strip, DynamicJsonDocument doc)
+DynamicJsonDocument setPixels(Adafruit_NeoPixel *strip, DynamicJsonDocument doc)
 {
     int r = doc["r"].as<int>();
     int g = doc["g"].as<int>();

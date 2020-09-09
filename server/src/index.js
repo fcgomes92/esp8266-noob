@@ -15,11 +15,15 @@ const app = express();
 
 app.use(cors({ optionsSuccessStatus: 200 }));
 
+app.use(async (req, res, next) => {
+  req.db = await getDatabaseClient();
+  next();
+});
+
 app.use('/:path/:subPath/(|fill|pixels|effects)/*', async (req, res, next) => {
   const { params: { path, subPath } = {} } = req || {};
   const topic = `${path}/${subPath}`;
   req.topic = topic;
-  req.db = await getDatabaseClient();
   req.mqtt = await getMQTTClient(req.db);
   return next();
 });
@@ -101,6 +105,25 @@ app.get('/:path/:subPath/effects/:effect', async (req, res) => {
   return res.json({ effect: effect });
 });
 
+app.get(
+  '/:path/:subPath/:id/effects/breath/:r/:g/:b/:s/:t',
+  async (req, res) => {
+    const { params: { r, g, b, s, t } = {} } = req || {};
+    await req.mqtt.publish(
+      req.topic,
+      JSON.stringify({
+        c: COMMANDS.configureBreath,
+        r,
+        g,
+        b,
+        s,
+        t,
+      })
+    );
+    return res.json({});
+  }
+);
+
 app.get('/:path/:subPath/:id/effects/:effect', async (req, res) => {
   const { params: { effect } = {} } = req || {};
   await req.mqtt.publish(
@@ -112,6 +135,31 @@ app.get('/:path/:subPath/:id/effects/:effect', async (req, res) => {
     })
   );
   return res.json({ effect: effect });
+});
+
+app.get('/strips', async (req, res) => {
+  const data = await req.db.lights.find().exec();
+  return res.json(data);
+});
+
+app.get('/strips/refresh', async (req, res) => {
+  await req.db.lights.find().remove();
+  const mqtt = await getMQTTClient(req.db);
+  await mqtt.publish('office/lights', JSON.stringify({ c: COMMANDS.getState }));
+  return res.json({ state: 'refreshing' });
+});
+
+app.get('/strips/:id/refresh', async (req, res) => {
+  const {
+    params: { id },
+  } = req;
+  await req.db.lights.findOne().where('id').eq(id).remove();
+  const mqtt = await getMQTTClient(req.db);
+  await mqtt.publish(
+    `office/lights/${id}`,
+    JSON.stringify({ c: COMMANDS.getState })
+  );
+  return res.json({ state: 'refreshing' });
 });
 
 app.route('/ping').get((req, res) => {

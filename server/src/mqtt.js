@@ -9,6 +9,7 @@ export const COMMANDS = {
   toggleEffect: 3,
   setPixels: 4,
   getState: 5,
+  configureBreath: 6,
 };
 
 export const getMQTTClient = async db => {
@@ -45,6 +46,7 @@ export const getMQTTClient = async db => {
       console.error(err);
     }
   });
+
   return client;
 };
 

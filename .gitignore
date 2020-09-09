@@ -34,7 +34,6 @@ app/.vscode/.browse.c_cpp.db*
 app/.vscode/c_cpp_properties.json
 app/.vscode/launch.json
 app/.vscode/ipch
-app/platformio.ini
 app/venv
 server/node_modules/
 server/.env
@@ -53,4 +52,4 @@ client/.env.production.local
 client/npm-debug.log*
 client/yarn-debug.log*
 client/yarn-error.log*
-
+*.log

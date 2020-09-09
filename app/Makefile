@@ -1,10 +1,7 @@
-.PHONY: build monitor upload
-
-build:
-	@python3 ./scripts/build.py --upload_flags=$(UPLOAD_FLAGS) --upload_port=$(UPLOAD_PORT) --monitor_port=$(MONITOR_PORT)
+.PHONY: monitor upload
 
 monitor:
 	@pio device monitor
 
-upload: build
+upload:
 	@pio run --target upload
