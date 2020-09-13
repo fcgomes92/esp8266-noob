@@ -49,6 +49,7 @@ typedef struct
 Config config;
 
 BreathConfig breathConfig;
+RainbowConfig rainbowConfig;
 
 // Handle data definition
 const size_t jsonReceiveDataCapacity = JSON_OBJECT_SIZE(8) + JSON_ARRAY_SIZE(4) + 60;
@@ -144,6 +145,13 @@ void callback(char *topic, byte *payload, unsigned int length)
                 doc["t"].as<int>());
             isEffectActive = true;
             selectedEffect = 4;
+            break;
+        case 7:
+            rainbowConfig.interval = doc["i"].as<unsigned long>();
+            rainbowConfig.type = doc["t"].as<unsigned long>();
+            isEffectActive = true;
+            selectedEffect = 1;
+            break;
         }
         strip->show();
         outputDoc["id"] = config.topicName;
@@ -266,7 +274,18 @@ void loop()
         switch (selectedEffect)
         {
         case 1:
-            doubleRainbow(strip, 32);
+            switch (rainbowConfig.type)
+            {
+            case 0:
+                updateRainbowCycle(strip, &rainbowConfig);
+                break;
+            case 1:
+                updateRainbow(strip, &rainbowConfig);
+                break;
+            case 2:
+                updateDoubleRainbow(strip, &rainbowConfig);
+                break;
+            }
             break;
         case 2:
             config.enablePortal = true;

@@ -19,35 +19,53 @@ const uint32_t Wheel(Adafruit_NeoPixel *strip, byte WheelPos)
     }
 }
 
-const void rainbow(Adafruit_NeoPixel *strip, uint8_t wait)
+const void updateRainbowCycle(Adafruit_NeoPixel *strip, RainbowConfig *config)
 {
-    uint16_t i = 0;
-    uint16_t j = 0;
-    for (j = 0; j < 256; j++)
+    if ((millis() - config->lastUpdate) > config->interval)
     {
+        config->lastUpdate = millis();
+        uint16_t j = config->colorIndex;
+        uint16_t i = 0;
         for (i = 0; i < strip->numPixels(); i++)
         {
-            strip->setPixelColor(i, Wheel(strip, (i * 1 + j) & 255));
+            strip->setPixelColor(i, Wheel(strip, ((i * 256 / strip->numPixels()) + j) & 255));
         }
         strip->show();
-        delay(wait);
+        config->colorIndex = config->colorIndex < 255 ? config->colorIndex + 1 : 0;
     }
 }
 
-const void doubleRainbow(Adafruit_NeoPixel *strip, uint8_t wait)
+const void updateRainbow(Adafruit_NeoPixel *strip, RainbowConfig *config)
 {
-    uint16_t i = 0;
-    uint16_t j = 0;
-    int size = strip->numPixels() / 2 - 1;
-    for (j = 0; j < 256; j++)
+    if ((millis() - config->lastUpdate) > config->interval)
     {
+        config->lastUpdate = millis();
+        uint16_t j = config->colorIndex;
+        uint16_t i = 0;
+        for (i = 0; i < strip->numPixels(); i++)
+        {
+            strip->setPixelColor(i, Wheel(strip, ((i + j) & 255)));
+        }
+        strip->show();
+        config->colorIndex = config->colorIndex < 255 ? config->colorIndex + 1 : 0;
+    }
+}
+
+const void updateDoubleRainbow(Adafruit_NeoPixel *strip, RainbowConfig *config)
+{
+    if ((millis() - config->lastUpdate) > config->interval)
+    {
+        config->lastUpdate = millis();
+        uint16_t j = config->colorIndex;
+        uint16_t i = 0;
+        int size = strip->numPixels() / 2 - 1;
         for (i = 0; i < size; i++)
         {
             strip->setPixelColor(i, Wheel(strip, (i + j) & 255));
             strip->setPixelColor(size * 2 - i, Wheel(strip, (i + j) & 255));
         }
         strip->show();
-        delay(wait);
+        config->colorIndex = config->colorIndex < 255 ? config->colorIndex + 1 : 0;
     }
 }
 

@@ -124,6 +124,19 @@ app.get(
   }
 );
 
+app.get('/:path/:subPath/:id/effects/rainbow/:t/:i', async (req, res) => {
+  const { params: { i, t } = {} } = req || {};
+  await req.mqtt.publish(
+    req.topic,
+    JSON.stringify({
+      c: COMMANDS.configureRainbow,
+      i,
+      t,
+    })
+  );
+  return res.json({});
+});
+
 app.get('/:path/:subPath/:id/effects/:effect', async (req, res) => {
   const { params: { effect } = {} } = req || {};
   await req.mqtt.publish(

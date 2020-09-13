@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon -r @babel/core -r @babel/register -r dotenv/config -r module-alias/register ./src/index.js",
     "database": "pouchdb-server -d ./pouchdb",
+    "start": "node -r @babel/core -r @babel/register -r dotenv/config -r module-alias/register ./src/index.js",
+    "dev": "nodemon -r @babel/core -r @babel/register -r dotenv/config -r module-alias/register ./src/index.js",
     "debug": "nodemon --inspect=5858 -r @babel/core -r @babel/register -r dotenv/config -r module-alias/register ./src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,27 +14,27 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@babel/core": "^7.8.4",
-    "@babel/node": "^7.8.4",
-    "@babel/preset-env": "^7.8.4",
-    "@babel/register": "^7.8.3",
+    "@babel/core": "^7.11.6",
+    "@babel/node": "^7.10.5",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/register": "^7.11.5",
     "async-mqtt": "^2.6.1",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "pouchdb-adapter-http": "^7.2.2",
     "pouchdb-server": "^4.2.0",
-    "rxdb": "^9.5.0",
-    "rxjs": "^6.6.2",
-    "ws": "^7.2.1"
+    "rxdb": "^9.6.0",
+    "rxjs": "^6.6.3",
+    "ws": "^7.3.1"
   },
   "devDependencies": {
-    "eslint": "^7.6.0",
+    "eslint": "^7.9.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.4",
     "module-alias": "^2.2.2",
     "nodemon": "^2.0.4",
-    "prettier": "^2.0.5"
+    "prettier": "^2.1.1"
   },
   "_moduleAliases": {
     "@root": ".",

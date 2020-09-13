@@ -10,6 +10,7 @@ export const COMMANDS = {
   setPixels: 4,
   getState: 5,
   configureBreath: 6,
+  configureRainbow: 7,
 };
 
 export const getMQTTClient = async db => {
