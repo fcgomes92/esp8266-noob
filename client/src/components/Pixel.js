@@ -1,6 +1,6 @@
 import React from "react";
 import { ChromePicker } from "react-color";
-import "../styles/components/Pixel.scss";
+import "~styles/components/Pixel.scss";
 export default function Pixel({
   color,
   index,

@@ -20,14 +20,20 @@ export const getMQTTClient = async db => {
     console.log(`Payload: ${topic}: ${payload}`);
     try {
       const data = JSON.parse(payload);
-      switch (topic) {
-        case 'office/lights/status': {
+      const [place, type] = topic.split('/');
+      switch (type) {
+        case 'lights': {
           if (data.id)
-            await db.lights.upsert({
-              id: data.id,
-              path: topic.replace('/status', ''),
-              ...(data.effect ? { selectedEffect: data.effect } : {}),
-            });
+            await Promise.all([
+              db.lights.upsert({
+                id: data.id,
+                path: topic.replace('/status', ''),
+                ...(data.effect ? { selectedEffect: data.effect } : {}),
+              }),
+              db.places.upsert({
+                name: place,
+              }),
+            ]);
           break;
         }
       }

@@ -2,6 +2,7 @@ import PouchAdapterHttp from 'pouchdb-adapter-http';
 import PouchAdapterMemory from 'pouchdb-adapter-memory';
 import { addRxPlugin, createRxDatabase } from 'rxdb';
 import lightsCollection from './lights.collection';
+import placesCollection from './places.collection';
 
 addRxPlugin(PouchAdapterMemory);
 addRxPlugin(PouchAdapterHttp);
@@ -20,6 +21,7 @@ export const getDatabaseClient = async () => {
     });
     const collections = await Promise.all([
       await db.collection(lightsCollection),
+      await db.collection(placesCollection),
     ]);
     await Promise.all(
       collections.map(async col =>

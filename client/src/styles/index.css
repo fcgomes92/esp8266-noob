@@ -1,0 +1,65 @@
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+:root {
+  --white: #fff;
+  --grey-lighter: #eee;
+  --grey-light: #ddd;
+  --grey: #ccc;
+  --black-light: #444;
+  --black-lighter: #555;
+  --black: #333;
+  --black-dark: #222;
+  --true-black: #000;
+
+  --main-bg: var(--white);
+  --main-text-color: var(--black);
+
+  --strips-list-container-bg: var(--grey-lighter);
+  --strips-list-item-bg: var(--grey-light);
+  --strips-list-item-color: var(--black);
+  --strips-list-item-selected-border-color: var(--black-dark);
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Open Sans", sans-serif;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+main.dark-theme {
+  --strips-list-container-bg: var(--black);
+  --strips-list-item-bg: var(--true-black);
+  --strips-list-item-color: var(--white);
+  --strips-list-item-selected-border-color: var(--grey-lighter);
+
+  --main-bg: var(--black-dark);
+  --main-text-color: var(--white);
+}
+
+main {
+  background-color: var(--main-bg);
+  color: var(--main-text-color);
+  display: flex;
+}
+
+@media (min-width: 75em) {
+  .strips-list-container {
+    width: 20vw;
+  }
+}
+
+@media (min-width: 100em) {
+  .strips-list-container {
+    width: 20rem;
+  }
+}

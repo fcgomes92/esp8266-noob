@@ -1,12 +1,16 @@
+// import "module-alias/register";
+import { Router } from "@reach/router";
 import React from "react";
 import ReactDOM from "react-dom";
-import App from "./App";
+import StripList from "./pages/StripList";
 import * as serviceWorker from "./serviceWorker";
-import './styles/index.scss'
+import "./styles/index.css";
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Router>
+      <StripList path="/*" />
+    </Router>
   </React.StrictMode>,
   document.getElementById("root")
 );

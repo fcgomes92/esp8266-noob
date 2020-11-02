@@ -38,13 +38,27 @@ DynamicJsonDocument setAll(Adafruit_NeoPixel *strip, byte red, byte green, byte 
 
 DynamicJsonDocument commandFill(Adafruit_NeoPixel *strip, DynamicJsonDocument doc)
 {
-    int r = doc["r"].as<int>();
-    int g = doc["g"].as<int>();
-    int b = doc["b"].as<int>();
+    uint8_t r = doc["r"].as<uint8_t>();
+    uint8_t g = doc["g"].as<uint8_t>();
+    uint8_t b = doc["b"].as<uint8_t>();
     if (validRGB(r, g, b))
     {
-        uint32_t color = strip->Color(r, g, b);
-        strip->fill(color);
+        uint32_t startColor = strip->getPixelColor(0);
+        uint8_t currentR = startColor >> 16, currentG = startColor >> 8, currentB = startColor;
+        uint8_t modR = currentR > r ? -1 : 1, modG = currentG > g ? -1 : 1, modB = currentB > b ? -1 : 1;
+        while (currentR != r || currentG != g || currentB != b)
+        {
+            if (currentR != r)
+                currentR = currentR + (1 * modR);
+            if (currentG != g)
+                currentG = currentG + (1 * modG);
+            if (currentB != b)
+                currentB = currentB + (1 * modB);
+            strip->fill(strip->Color(currentR, currentG, currentB));
+            strip->show();
+            delay(10);
+        }
+        strip->fill(strip->Color(r, g, b));
     }
     return doc;
 }

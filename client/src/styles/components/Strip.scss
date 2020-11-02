@@ -1,73 +1,139 @@
-.strip {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  justify-content: flex-start;
-  height: auto;
-  &__lane {
-    margin: 0.5rem;
-    width: 2.6rem;
-    &:nth-child(2n + 1) {
-      .strip__connection--top {
-        border-radius: 2rem 0 0 0;
-        &:after {
-          background-color: #eee;
-          top: 0;
-          left: 2rem;
-        }
-      }
+// .strip {
+//   display: flex;
+//   flex-wrap: nowrap;
+//   align-items: flex-start;
+//   justify-content: flex-start;
+//   height: auto;
+//   &__lane {
+//     margin: 0.5rem;
+//     width: 2.6rem;
+//     &:nth-child(2n + 1) {
+//       .strip__connection--top {
+//         border-radius: 2rem 0 0 0;
+//         &:after {
+//           background-color: #eee;
+//           top: 0;
+//           left: 2rem;
+//         }
+//       }
+//     }
+//     &:nth-child(2n + 2):not(:last-child) {
+//       .strip__connection--bottom {
+//         border-radius: 0 0 0 2rem;
+//         &:after {
+//           background-color: #eee;
+//           bottom: 0;
+//           left: 2rem;
+//         }
+//       }
+//     }
+//     &:nth-child(2n + 3):not(:last-child) {
+//       .strip__connection--bottom {
+//         border-radius: 0 0 2rem 0;
+//         &:after {
+//           background-color: #eee;
+//           bottom: 0;
+//           right: 2rem;
+//         }
+//       }
+//     }
+//     &:nth-child(2n) {
+//       .strip__connection--top {
+//         border-radius: 0 2rem 0 0;
+//         &:after {
+//           background-color: #eee;
+//           top: 0;
+//           right: 2rem;
+//         }
+//       }
+//     }
+//   }
+//   &__pixel {
+//     padding: 0.2rem;
+//     background-color: #eee;
+//   }
+//   &__connection {
+//     height: 3rem;
+//     width: 2.6rem;
+//     background-color: #eee;
+//     position: relative;
+//     &:after {
+//       width: 2rem;
+//       height: 2rem;
+//       content: "";
+//       position: absolute;
+//     }
+//     &--top {
+//       border-radius: 2rem 2rem 0 0;
+//     }
+//     &--bottom {
+//       border-radius: 0 0 2rem 2rem;
+//     }
+//   }
+// }
+
+// =================
+
+.strip-container {
+  display: inline-flex;
+  flex-grow: 1;
+  padding: 1rem;
+  align-items: start;
+  justify-content: start;
+}
+.strips-list-container {
+  display: inline-flex;
+  width: 25vw;
+  padding: 0;
+  margin-right: 1rem;
+  height: 100vh;
+  background-color: var(--strips-list-container-bg);
+}
+.strips-list {
+  width: 100%;
+  margin: 0;
+  padding: 0.8rem;
+  &__item {
+    &:hover,
+    &--selected {
+      margin-right: -1rem;
+      margin-left: 1rem;
     }
-    &:nth-child(2n + 2):not(:last-child) {
-      .strip__connection--bottom {
-        border-radius: 0 0 0 2rem;
-        &:after {
-          background-color: #eee;
-          bottom: 0;
-          left: 2rem;
-        }
-      }
+
+    &--selected {
+      border-right: solid var(--strips-list-item-selected-border-color) 0.1rem;
     }
-    &:nth-child(2n + 3):not(:last-child) {
-      .strip__connection--bottom {
-        border-radius: 0 0 2rem 0;
-        &:after {
-          background-color: #eee;
-          bottom: 0;
-          right: 2rem;
-        }
-      }
-    }
-    &:nth-child(2n) {
-      .strip__connection--top {
-        border-radius: 0 2rem 0 0;
-        &:after {
-          background-color: #eee;
-          top: 0;
-          right: 2rem;
-        }
-      }
+
+    color: var(--strips-list-item-color);
+    background-color: var(--strips-list-item-bg);
+    list-style-type: none;
+    padding: 0.8rem;
+    margin: 0.4rem;
+    height: 4rem;
+    line-height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    transition: all ease 0.2s;
+
+    &__icon {
+      margin: 0 0.5rem;
     }
   }
-  &__pixel {
-    padding: 0.2rem;
-    background-color: #eee;
+}
+
+.strip-card {
+  --strip-card-background: var(--black);
+  background-color: var(--strip-card-background);
+  padding: 1rem;
+  margin: 0.5rem;
+  border-radius: 0.4rem;
+  &__title {
+    line-height: 3rem;
+    font-weight: 600;
   }
-  &__connection {
-    height: 3rem;
-    width: 2.6rem;
-    background-color: #eee;
-    position: relative;
-    &:after {
-      width: 2rem;
-      height: 2rem;
-      content: "";
-      position: absolute;
-    }
-    &--top {
-      border-radius: 2rem 2rem 0 0;
-    }
-    &--bottom {
-      border-radius: 0 0 2rem 2rem;
-    }
+  &__subtitle {
+  }
+  &__content {
   }
 }

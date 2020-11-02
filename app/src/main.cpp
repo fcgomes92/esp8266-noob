@@ -66,35 +66,6 @@ void subscribe(PubSubClient *client, Config *config)
     client->subscribe(String((String)config->topicPath + "/" + (String)config->topicName).c_str());
 }
 
-void connectToBroker()
-{
-    if (!client.connected())
-    {
-        while (!client.connected())
-        {
-            LOG("Connecting to MQTT...");
-
-            if (client.connect(String("esp8266-client-" + (String)config.topicName).c_str()))
-            {
-                subscribe(&client, &config);
-                String output;
-                DynamicJsonDocument doc = getStripState(strip, isEffectActive, selectedEffect);
-                doc["id"] = config.topicName;
-                serializeJson(doc, output);
-                publish(&client, &config, const_cast<char *>(output.c_str()));
-                LOG("connected");
-            }
-            else
-            {
-
-                LOG("failed with state ");
-                LOG(client.state());
-                delay(1000);
-            }
-        }
-    }
-}
-
 void callback(char *topic, byte *payload, unsigned int length)
 {
 
@@ -162,6 +133,38 @@ void callback(char *topic, byte *payload, unsigned int length)
     LOG("################");
 }
 
+void connectToBroker()
+{
+    if (!client.connected())
+    {
+        while (!client.connected())
+        {
+            LOG("Connecting to MQTT...");
+
+            //if (client.connect(String("esp8266-client-" + (String)config.topicName).c_str()))
+            String clientId = "ESP8266Client-";
+            clientId += String(random(0xffff), HEX);
+            if (client.connect(clientId.c_str()))
+            {
+                subscribe(&client, &config);
+                String output;
+                DynamicJsonDocument doc = getStripState(strip, isEffectActive, selectedEffect);
+                doc["id"] = config.topicName;
+                serializeJson(doc, output);
+                publish(&client, &config, const_cast<char *>(output.c_str()));
+                LOG("connected");
+            }
+            else
+            {
+
+                LOG("failed with state ");
+                LOG(client.state());
+                delay(1000);
+            }
+        }
+    }
+}
+
 void saveWifiCallback()
 {
     LOG("[CALLBACK] saveCallback fired");
@@ -201,16 +204,14 @@ void setup()
 
     WiFi.mode(WIFI_STA);                // explicitly set mode, esp defaults to STA+AP
     WiFi.setSleepMode(WIFI_NONE_SLEEP); // disable sleep, can improve ap stability
+    WiFi.hostname(String("esp8266-" + (String)config.topicName + ".local").c_str());
+    wm.setHostname(String("esp8266-" + (String)config.topicName + ".local").c_str());
     wm.setClass("invert");
     wm.setCountry("US");
-    wm.setHostname(String("esp8266-" + (String)config.topicName + ".local").c_str());
     wm.setConfigPortalTimeout(120);
     wm.setConnectTimeout(60);
     wm.setBreakAfterConfig(true);
     wm.setSaveConfigCallback(saveWifiCallback);
-
-    client.setServer(config.host, config.port);
-    client.setCallback(callback);
 
     if (!wm.autoConnect() || config.enablePortal)
     {
@@ -225,13 +226,14 @@ void setup()
         clock_prescale_set(clock_div_1);
 #endif
 
+        LOG("Configuring client");
+        client.setServer(config.host, config.port);
+        client.setCallback(callback);
+        delay(500);
+
         strip = new Adafruit_NeoPixel(config.pixels, PIN, NEO_GRB + NEO_KHZ800);
         strip->begin();
         strip->setBrightness(255);
-
-        delay(250);
-        connectToBroker();
-        delay(250);
 
         ArduinoOTA.setHostname(String("ESP8266" + (String)config.topicName).c_str());
         ArduinoOTA.setPassword(config.otaPassword);
@@ -260,6 +262,10 @@ void setup()
         });
         ArduinoOTA.begin();
         LOG("OTA ready");
+
+        delay(250);
+        connectToBroker();
+        delay(250);
     }
     wifiInfo(&wm);
     delay(500);
