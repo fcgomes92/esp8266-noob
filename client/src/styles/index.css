@@ -1,28 +1,18 @@
+:root {
+  --main-bg: theme("colors.white");
+  --main-text-color: theme("colors.black");
+
+  --strips-list-container-bg: theme("colors.gray.200");
+  --strips-list-item-bg: theme("colors.gray.300");
+  --strips-list-item-color: theme("colors.gray.800");
+  --strips-list-item-selected-border-color: theme("colors.gray.800");
+}
+
 @tailwind base;
 
 @tailwind components;
 
 @tailwind utilities;
-
-:root {
-  --white: #fff;
-  --grey-lighter: #eee;
-  --grey-light: #ddd;
-  --grey: #ccc;
-  --black-light: #444;
-  --black-lighter: #555;
-  --black: #333;
-  --black-dark: #222;
-  --true-black: #000;
-
-  --main-bg: var(--white);
-  --main-text-color: var(--black);
-
-  --strips-list-container-bg: var(--grey-lighter);
-  --strips-list-item-bg: var(--grey-light);
-  --strips-list-item-color: var(--black);
-  --strips-list-item-selected-border-color: var(--black-dark);
-}
 
 html,
 body {
@@ -37,13 +27,17 @@ body {
 }
 
 main.dark-theme {
-  --strips-list-container-bg: var(--black);
-  --strips-list-item-bg: var(--true-black);
-  --strips-list-item-color: var(--white);
-  --strips-list-item-selected-border-color: var(--grey-lighter);
+  --strips-list-container-bg: theme("colors.purple.900");
+  --strips-list-item-bg: theme("colors.gray.900");
+  --strips-list-item-color: theme("colors.white");
+  --strips-list-item-selected-border-color: theme("colors.gray.300");
 
-  --main-bg: var(--black-dark);
-  --main-text-color: var(--white);
+  --strip-card-background: theme("colors.gray.800");
+
+  --main-bg: theme("colors.gray.900");
+  --main-text-color: theme("colors.white");
+
+  --color-picker-bg: theme("colors.gray.800");
 }
 
 main {

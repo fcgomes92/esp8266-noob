@@ -3,13 +3,10 @@ import express from 'express';
 import http from 'http';
 import { getDatabaseClient } from './db/index';
 import { COMMANDS, getMQTTClient } from './mqtt';
-import {
-  setBreathEffectRoute,
-  setRainbowEffectRoute,
-  toggleEffectRoute,
-} from './routes/effects';
+import { setColorRoute } from './routes/color';
+import { setEffectRoute } from './routes/effects';
 import { fillRoute } from './routes/fill';
-import { setPixelsRoute } from './routes/pixels';
+import { setSpeed } from './routes/speed';
 
 const app = express();
 
@@ -20,16 +17,19 @@ app.use(async (req, res, next) => {
   next();
 });
 
-app.use('/:path/:subPath/(|fill|pixels|effects)/*', async (req, res, next) => {
-  const { params: { path, subPath } = {} } = req || {};
-  const topic = `${path}/${subPath}`;
-  req.topic = topic;
-  req.mqtt = await getMQTTClient(req.db);
-  return next();
-});
+app.use(
+  '/:path/:subPath/(|color|fill|speed|effects)/*',
+  async (req, res, next) => {
+    const { params: { path, subPath } = {} } = req || {};
+    const topic = `${path}/${subPath}`;
+    req.topic = topic;
+    req.mqtt = await getMQTTClient(req.db);
+    return next();
+  }
+);
 
 app.use(
-  '/:path/:subPath/:id/(|fill|pixels|effects)/*',
+  '/:path/:subPath/:id/(|color|fill|speed|effects)/*',
   async (req, res, next) => {
     const { params: { path, subPath, id } = {} } = req || {};
     const topic = `${path}/${subPath}/${id}`;
@@ -42,29 +42,24 @@ app.use(
 app.get('/:path/:subPath/fill/:r/:g/:b', fillRoute);
 app.get('/:path/:subPath/:id/fill/:r/:g/:b', fillRoute);
 
-app.get('/:path/:subPath/pixels/:s/:e/:r/:g/:b', setPixelsRoute);
-app.get('/:path/:subPath/:id/pixels/:s/:e/:r/:g/:b', setPixelsRoute);
+app.get('/:path/:subPath/effects/:effect', setEffectRoute);
+app.get('/:path/:subPath/:id/effects/:effect', setEffectRoute);
 
-app.get('/:path/:subPath/effects/:effect', toggleEffectRoute);
+app.get('/:path/:subPath/speed/:speed', setSpeed);
+app.get('/:path/:subPath/:id/speed/:speed', setSpeed);
 
-app.get(
-  '/:path/:subPath/:id/effects/breath/:r/:g/:b/:s/:t',
-  setBreathEffectRoute
-);
-app.get('/:path/:subPath/effects/breath/:r/:g/:b/:s/:t', setBreathEffectRoute);
-
-app.get('/:path/:subPath/:id/effects/rainbow/:t/:i', setRainbowEffectRoute);
-app.get('/:path/:subPath/effects/rainbow/:t/:i', setRainbowEffectRoute);
+app.get('/:path/:subPath/color/:r/:g/:b', setColorRoute);
+app.get('/:path/:subPath/:id/color/:r/:g/:b', setColorRoute);
 
 app.get('/strips', async (req, res) => {
   const data = await req.db.lights.find().exec();
   return res.json(
     data.map(strip => ({
-      id: strip.id,
-      path: strip.path,
-      effect: strip.selectedEffect,
-      effectActive: strip.isEffectActive,
-      pixels: strip.pixels,
+        id: strip.id,
+        path: strip.path,
+        effect: strip.effect,
+        speed: strip.speed,
+        color: strip.color,
     }))
   );
 });
