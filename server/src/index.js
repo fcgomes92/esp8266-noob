@@ -92,4 +92,5 @@ server.listen(process.env.PORT, async () => {
   const db = await getDatabaseClient();
   await getMQTTClient(db);
   console.log(`Server started on port ${server.address().port}`);
+  process.send('ready');
 });

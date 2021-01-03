@@ -10,7 +10,10 @@ jobs:
       - uses: actions/upload-artifact@v2.2.1
         with:
           name: build-files
-          path: server/lib
+          path: |
+            server/lib
+            package-lock.json
+            package.json
 
   deploy:
     needs: build
@@ -20,3 +23,5 @@ jobs:
         with:
           name: build-files
           path: /var/www/esp8266-server
+      - run: npm run ci
+      - run: npm run run
