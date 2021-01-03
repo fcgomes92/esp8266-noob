@@ -1,7 +1,7 @@
 name: server-deploy
 on: [push]
 jobs:
-  check-bats-version:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -9,5 +9,13 @@ jobs:
       - run: cd server && npm install --no-production && npm run build
       - uses: actions/upload-artifact@v2.2.1
         with:
-          name: copy build files
+          name: upload build files
           path: server/lib
+
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/download-artifact@v2.2.1
+        with:
+          name: download build files
+          path: /var/www/esp8266-server

@@ -1,7 +1,7 @@
-name: server-deploy
+name: client-deploy
 on: [push]
 jobs:
-  check-bats-version:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
