@@ -28,4 +28,4 @@ jobs:
         run: npm run ci
       - name: 
         working-directory: /var/www/esp8266-server
-      - run: npm run run
+        run: npm run run
