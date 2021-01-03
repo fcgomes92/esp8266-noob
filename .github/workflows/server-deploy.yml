@@ -15,7 +15,7 @@ jobs:
   deploy:
     runs-on: self-hosted
     steps:
-      - uses: actions/download-artifact@v2.2.1
+      - uses: actions/download-artifact@v2.0.7
         with:
           name: build-files
           path: /var/www/esp8266-server
