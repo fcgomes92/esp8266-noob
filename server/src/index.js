@@ -1,3 +1,5 @@
+import '@babel/register';
+import 'dotenv/config';
 import cors from 'cors';
 import express from 'express';
 import http from 'http';
@@ -55,11 +57,11 @@ app.get('/strips', async (req, res) => {
   const data = await req.db.lights.find().exec();
   return res.json(
     data.map(strip => ({
-        id: strip.id,
-        path: strip.path,
-        effect: strip.effect,
-        speed: strip.speed,
-        color: strip.color,
+      id: strip.id,
+      path: strip.path,
+      effect: strip.effect,
+      speed: strip.speed,
+      color: strip.color,
     }))
   );
 });

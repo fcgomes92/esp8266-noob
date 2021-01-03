@@ -21,7 +21,7 @@
   "scripts": {
     "start": "parcel ./src/index.html",
     "watch": "parcel watch ./src/index.html",
-    "build": "parcel build --experimental-scope-hoisting "
+    "build": "parcel build --experimental-scope-hoisting"
   },
   "_moduleAliases": {
     "~root": ".",

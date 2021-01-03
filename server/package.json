@@ -8,6 +8,7 @@
     "start": "node -r @babel/core -r @babel/register -r dotenv/config -r module-alias/register ./src/index.js",
     "dev": "nodemon -r @babel/core -r @babel/register -r dotenv/config -r module-alias/register ./src/index.js",
     "debug": "nodemon --inspect=5858 -r @babel/core -r @babel/register -r dotenv/config -r module-alias/register ./src/index.js",
+    "build": "rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -34,7 +35,8 @@
     "eslint-plugin-prettier": "^3.1.4",
     "module-alias": "^2.2.2",
     "nodemon": "^2.0.4",
-    "prettier": "^2.1.1"
+    "prettier": "^2.1.1",
+    "rollup": "^2.35.1"
   },
   "_moduleAliases": {
     "@root": ".",
