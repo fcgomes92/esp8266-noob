@@ -11,9 +11,10 @@ jobs:
         with:
           name: build-files
           path: |
-            server/lib
-            package-lock.json
-            package.json
+            server/lib/*
+            server/package-lock.json
+            server/package.json
+            server/ecosystem.config.js
 
   deploy:
     needs: build
