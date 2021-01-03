@@ -2,18 +2,17 @@
 #define COMMANDS_H
 
 #include <ArduinoJson.h>
-#include <Adafruit_NeoPixel.h>
+#include <WS2812FX.h>
 #include <PubSubClient.h>
 #include <string>
 #include "../utils/utils.h"
-#include "../effects/effects.h"
 
-DynamicJsonDocument getStripState(Adafruit_NeoPixel *strip, bool isEffectActive, int selectedEffect);
-DynamicJsonDocument setPixel(Adafruit_NeoPixel *strip, int pixel, byte red, byte green, byte blue);
-DynamicJsonDocument setAll(Adafruit_NeoPixel *strip, byte red, byte green, byte blue);
-DynamicJsonDocument commandFill(Adafruit_NeoPixel *strip, DynamicJsonDocument doc);
-DynamicJsonDocument setBrightness(Adafruit_NeoPixel *strip, DynamicJsonDocument doc);
-DynamicJsonDocument toggleEffect(Adafruit_NeoPixel *strip, DynamicJsonDocument doc, bool *isEffectActive, int *selectedEffect);
-DynamicJsonDocument setPixels(Adafruit_NeoPixel *strip, DynamicJsonDocument doc);
+DynamicJsonDocument getStripState(WS2812FX *strip, DynamicJsonDocument doc);
+DynamicJsonDocument setAll(WS2812FX *strip, byte red, byte green, byte blue);
+DynamicJsonDocument commandFill(WS2812FX *strip, DynamicJsonDocument doc);
+DynamicJsonDocument setBrightness(WS2812FX *strip, DynamicJsonDocument doc);
+DynamicJsonDocument setStripEffect(WS2812FX *strip, DynamicJsonDocument doc);
+DynamicJsonDocument setStripColor(WS2812FX *strip, DynamicJsonDocument doc);
+DynamicJsonDocument setStripSpeed(WS2812FX *strip, DynamicJsonDocument doc);
 
 #endif

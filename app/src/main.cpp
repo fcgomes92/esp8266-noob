@@ -6,15 +6,12 @@
 #endif
 #include <ArduinoOTA.h>
 #include <WiFiManager.h>
-#include <Adafruit_NeoPixel.h>
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
-// #include <.h>
+#include <WS2812FX.h>
 #include <PubSubClient.h>
-#include "effects/effects.h"
 #include "utils/utils.h"
 #include "commands/commands.h"
-#include "effects/breath.h"
 #include "env.cpp"
 
 // LED Strip definition
@@ -27,29 +24,26 @@
 
 const int EEPROM_ADDR = 0;
 WiFiManager wm;
-Adafruit_NeoPixel *strip;
-
-int selectedEffect = 4;
-boolean isEffectActive = true;
+WS2812FX *strip;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 typedef struct
 {
-    char *topicName = (char *)STR_VALUE(APP_TOPIC_NAME);
-    char *topicPath = (char *)STR_VALUE(APP_TOPIC_PATH);
-    char *host = (char *)STR_VALUE(APP_HOST);
+    char *topicName = STR_VALUE(APP_TOPIC_NAME);
+    char *topicPath = STR_VALUE(APP_TOPIC_PATH);
+    char *host = STR_VALUE(APP_HOST);
     int port = APP_PORT;
     int pixels = APP_STRIP_PIXELS;
+    int mode = APP_STRIP_MODE;
+    uint32_t color = APP_STRIP_COLOR;
+    int speed = APP_STRIP_SPEED;
     bool enablePortal = APP_ENABLE_PORTAL;
-    char *otaPassword = (char *)STR_VALUE(APP_OTA_PASSWORD);
+    char *otaPassword = STR_VALUE(APP_OTA_PASSWORD);
 } Config;
 
 Config config;
-
-BreathConfig breathConfig;
-RainbowConfig rainbowConfig;
 
 // Handle data definition
 const size_t jsonReceiveDataCapacity = JSON_OBJECT_SIZE(8) + JSON_ARRAY_SIZE(4) + 60;
@@ -66,33 +60,13 @@ void subscribe(PubSubClient *client, Config *config)
     client->subscribe(String((String)config->topicPath + "/" + (String)config->topicName).c_str());
 }
 
-void connectToBroker()
+void updateStripConfig(WS2812FX *strip)
 {
-    if (!client.connected())
-    {
-        while (!client.connected())
-        {
-            LOG("Connecting to MQTT...");
-
-            if (client.connect(String("esp8266-client-" + (String)config.topicName).c_str()))
-            {
-                subscribe(&client, &config);
-                String output;
-                DynamicJsonDocument doc = getStripState(strip, isEffectActive, selectedEffect);
-                doc["id"] = config.topicName;
-                serializeJson(doc, output);
-                publish(&client, &config, const_cast<char *>(output.c_str()));
-                LOG("connected");
-            }
-            else
-            {
-
-                LOG("failed with state ");
-                LOG(client.state());
-                delay(1000);
-            }
-        }
-    }
+    config.color = strip->getColor();
+    config.mode = strip->getMode();
+    config.speed = strip->getSpeed();
+    EEPROM.put(EEPROM_ADDR, config);
+    EEPROM.commit();
 }
 
 void callback(char *topic, byte *payload, unsigned int length)
@@ -108,7 +82,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     }
     else
     {
-        DynamicJsonDocument outputDoc(JSON_OBJECT_SIZE(4) + JSON_ARRAY_SIZE(144) + JSON_OBJECT_SIZE(1));
+        DynamicJsonDocument outputDoc(JSON_OBJECT_SIZE(8));
         String output;
 
         LOG("################");
@@ -118,48 +92,67 @@ void callback(char *topic, byte *payload, unsigned int length)
         switch (doc["c"].as<int>())
         {
         case 0:
-            outputDoc = commandFill(strip, doc);
+            outputDoc = setStripColor(strip, doc);
             break;
         case 1:
             outputDoc = setBrightness(strip, doc);
             break;
-        case 2:
-            strip->clear();
-            break;
         case 3:
-            outputDoc = toggleEffect(strip, doc, &isEffectActive, &selectedEffect);
+            outputDoc = setStripEffect(strip, doc);
             break;
         case 4:
-            outputDoc = setPixels(strip, doc);
+            outputDoc = setStripSpeed(strip, doc);
             break;
         case 5:
-            outputDoc = getStripState(strip, isEffectActive, selectedEffect);
+            // status update is default to all calls or 5
             break;
-        case 6:
-            createBreathConfig(
-                &breathConfig,
-                doc["s"].as<unsigned long>(),
-                doc["r"].as<int>(),
-                doc["g"].as<int>(),
-                doc["b"].as<int>(),
-                doc["t"].as<int>());
-            isEffectActive = true;
-            selectedEffect = 4;
-            break;
-        case 7:
-            rainbowConfig.interval = doc["i"].as<unsigned long>();
-            rainbowConfig.type = doc["t"].as<unsigned long>();
-            isEffectActive = true;
-            selectedEffect = 1;
-            break;
+        case 99:
+            // reset config
+            Config default_config;
+            EEPROM.put(EEPROM_ADDR, default_config);
+            EEPROM.commit();
         }
-        strip->show();
+        outputDoc = getStripState(strip, doc);
         outputDoc["id"] = config.topicName;
         serializeJson(outputDoc, output);
         LOG(output);
         publish(&client, &config, const_cast<char *>(output.c_str()));
+        updateStripConfig(strip);
     }
     LOG("################");
+}
+
+void connectToBroker()
+{
+    if (!client.connected())
+    {
+        while (!client.connected())
+        {
+            LOG("Connecting to MQTT...");
+
+            //if (client.connect(String("esp8266-client-" + (String)config.topicName).c_str()))
+            String clientId = "ESP8266Client-";
+            clientId += String(random(0xffff), HEX);
+            if (client.connect(clientId.c_str()))
+            {
+                subscribe(&client, &config);
+                String output;
+                DynamicJsonDocument doc(jsonReceiveDataCapacity);
+                doc = getStripState(strip, doc);
+                doc["id"] = config.topicName;
+                serializeJson(doc, output);
+                publish(&client, &config, const_cast<char *>(output.c_str()));
+                LOG("connected");
+            }
+            else
+            {
+
+                LOG("failed with state ");
+                LOG(client.state());
+                delay(1000);
+            }
+        }
+    }
 }
 
 void saveWifiCallback()
@@ -192,25 +185,26 @@ void logConfig(Config *config)
 void setup()
 {
     Serial.begin(115200);
-    EEPROM.begin(512);
+    EEPROM.begin(4096);
     delay(500);
+    // EEPROM.put(EEPROM_ADDR, config);
+    logConfig(&config);
 
+    EEPROM.get(EEPROM_ADDR, config);
     logConfig(&config);
 
     // std::vector<const char *> menu = {"wifi", "wifinoscan", "info", "param", "close", "sep", "erase", "restart", "exit"};
 
     WiFi.mode(WIFI_STA);                // explicitly set mode, esp defaults to STA+AP
     WiFi.setSleepMode(WIFI_NONE_SLEEP); // disable sleep, can improve ap stability
+    WiFi.hostname(String("esp8266-" + (String)config.topicName + ".local").c_str());
+    wm.setHostname(String("esp8266-" + (String)config.topicName + ".local").c_str());
     wm.setClass("invert");
     wm.setCountry("US");
-    wm.setHostname(String("esp8266-" + (String)config.topicName + ".local").c_str());
     wm.setConfigPortalTimeout(120);
     wm.setConnectTimeout(60);
     wm.setBreakAfterConfig(true);
     wm.setSaveConfigCallback(saveWifiCallback);
-
-    client.setServer(config.host, config.port);
-    client.setCallback(callback);
 
     if (!wm.autoConnect() || config.enablePortal)
     {
@@ -225,13 +219,18 @@ void setup()
         clock_prescale_set(clock_div_1);
 #endif
 
-        strip = new Adafruit_NeoPixel(config.pixels, PIN, NEO_GRB + NEO_KHZ800);
-        strip->begin();
-        strip->setBrightness(255);
+        LOG("Configuring client");
+        client.setServer(config.host, config.port);
+        client.setCallback(callback);
+        delay(500);
 
-        delay(250);
-        connectToBroker();
-        delay(250);
+        strip = new WS2812FX(config.pixels, PIN, NEO_GRB + NEO_KHZ800);
+        strip->init();
+        strip->setBrightness(255);
+        strip->setSpeed(config.speed);
+        strip->setColor(config.color);
+        strip->setMode(config.mode);
+        strip->start();
 
         ArduinoOTA.setHostname(String("ESP8266" + (String)config.topicName).c_str());
         ArduinoOTA.setPassword(config.otaPassword);
@@ -260,6 +259,10 @@ void setup()
         });
         ArduinoOTA.begin();
         LOG("OTA ready");
+
+        delay(250);
+        connectToBroker();
+        delay(250);
     }
     wifiInfo(&wm);
     delay(500);
@@ -269,37 +272,6 @@ void loop()
 {
     ArduinoOTA.handle();
     client.loop();
-    if (isEffectActive)
-    {
-        switch (selectedEffect)
-        {
-        case 1:
-            switch (rainbowConfig.type)
-            {
-            case 0:
-                updateRainbowCycle(strip, &rainbowConfig);
-                break;
-            case 1:
-                updateRainbow(strip, &rainbowConfig);
-                break;
-            case 2:
-                updateDoubleRainbow(strip, &rainbowConfig);
-                break;
-            }
-            break;
-        case 2:
-            config.enablePortal = true;
-            EEPROM.put(EEPROM_ADDR, config);
-            EEPROM.commit();
-            ESP.restart();
-            break;
-        case 3:
-            meteorRain(strip, 0xff, 0xff, 0xff, 10, 64, true, 30);
-            break;
-        case 4:
-            updateBreath(strip, &breathConfig);
-            break;
-        }
-    }
+    strip->service();
     connectToBroker();
 }

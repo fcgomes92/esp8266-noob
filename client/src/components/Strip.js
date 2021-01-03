@@ -1,8 +1,9 @@
-import axios from "axios";
 import React from "react";
 import { ChromePicker } from "react-color";
-import "../styles/components/Strip.scss";
-import Pixel from "./Pixel";
+import api from "~api";
+import "~styles/components/Strip.scss";
+import { buildSetPixelAllURL, EFFECTS, buildEffectAllURL } from "~utils";
+import Pixel from "~/components/Pixel";
 
 const chunk = (arr, size) => {
   return [...arr].reduce(
@@ -18,54 +19,110 @@ const chunk = (arr, size) => {
   );
 };
 
+const createPixelArray = (total, color) => {
+  return [...new Array(total)].map((_, index) => ({
+    color,
+    index,
+  }));
+};
+
+const generateSetPixelCommands = (commands, pixel, index) => {
+  const [head, ...rest] = commands;
+  if (
+    head.r === pixel.color.rgb.r &&
+    head.g === pixel.color.rgb.g &&
+    head.b === pixel.color.rgb.b
+  ) {
+    return [{ ...head, e: index }, ...rest];
+  }
+  return [{ ...pixel.color.rgb, s: index, e: index + 1 }, head, ...rest];
+};
+
 export default function Strip({ total = 10, hidePixelLabel = false }) {
   const baseColor = { hex: "#fff", rgb: { r: 255, g: 255, b: 255, a: 1 } };
-  const createPixelArray = () => {
-    return [...new Array(total)].map((_, index) => ({
-      color: baseColor,
-      index,
-    }));
-  };
-  const [pixels, setPixels] = React.useState(createPixelArray());
+  const [pixels, setPixels] = React.useState(
+    createPixelArray(total, baseColor)
+  );
   const [isPaintOn, setIsPaintOn] = React.useState(false);
   const [paintColor, setPaintColor] = React.useState(baseColor);
+  const [selectedEffect, setEffect] = React.useState(EFFECTS.rainbow);
+
   React.useEffect(() => {
-    setPixels(createPixelArray());
+    setPixels(
+      createPixelArray(total, {
+        hex: "#fff",
+        rgb: { r: 255, g: 255, b: 255, a: 1 },
+      })
+    );
   }, [total]);
+
   const handleSetStripPixels = async () => {
     const commands = pixels
-      .reduce(
-        (commands, pixel, index) => {
-          const [head, ...rest] = commands;
-          if (
-            head.r === pixel.color.rgb.r &&
-            head.g === pixel.color.rgb.g &&
-            head.b === pixel.color.rgb.b
-          ) {
-            return [{ ...head, e: index }, ...rest];
-          }
-          return [
-            { ...pixel.color.rgb, s: index, e: index + 1 },
-            head,
-            ...rest,
-          ];
-        },
-        [{ s: 0, e: 0, ...baseColor.rgb }]
-      )
-      .map(async (command) => {
-        return axios.get("http://localhost:3000/pixels", {
-          params: {
-            ...command,
-          },
-        });
+      .reduce(generateSetPixelCommands, [{ s: 0, e: 0, ...baseColor.rgb }])
+      .map(async ({ s, e, r, g, b }) => {
+        console.log(buildSetPixelAllURL("office/lights", s, e, r, g, b));
+        return api.get(buildSetPixelAllURL("office/lights", s, e, r, g, b));
       });
     await Promise.all(commands);
   };
+
   const chunkedPixels = chunk(pixels, 20);
+
+  const handleColorChange = (pixel) => {
+    setPixels([
+      ...pixels.slice(0, pixel.index),
+      pixel,
+      ...pixels.slice(pixel.index + 1, pixels.length),
+    ]);
+  };
+  const handleHoverPixel = ({ index }) => {
+    isPaintOn && handleColorChange({ index, color: paintColor });
+  };
+
+  const renderPixels = ({ color, index }) => {
+    return (
+      <div className="strip__pixel" key={`pixel-${index}`}>
+        <Pixel
+          hideLabel={hidePixelLabel}
+          color={color}
+          index={index}
+          onHover={handleHoverPixel}
+          onChangeColor={handleColorChange}
+        />
+      </div>
+    );
+  };
+
+  const handleRadioChange = (e) => {
+    setEffect(e.target.value);
+  };
+
+  const handleEffectFormSubmit = async (e) => {
+    e.preventDefault();
+    await api.get(buildEffectAllURL("office/lights", selectedEffect, [0, 128]));
+  };
+
   return (
     <React.Fragment>
       <div>
-        <button onClick={handleSetStripPixels}>Set Strip Color</button>
+        Effects:
+        <form onSubmit={handleEffectFormSubmit}>
+          <fieldset id="group1">
+            {Object.values(EFFECTS).map((effect) => (
+              <label key={effect}>
+                {effect}
+                <input
+                  checked={selectedEffect === effect}
+                  type="radio"
+                  value={effect}
+                  name="effect"
+                  onChange={handleRadioChange}
+                />
+              </label>
+            ))}
+          </fieldset>
+          <button type="submit">Set effect</button>
+        </form>
       </div>
       <div>
         <h5>Paint Tool:</h5>
@@ -82,35 +139,14 @@ export default function Strip({ total = 10, hidePixelLabel = false }) {
           />
         </label>
       </div>
+      <div>
+        <button onClick={handleSetStripPixels}>Set Strip Color</button>
+      </div>
       <div className="strip">
         {chunkedPixels.map((pxs, lineIndex) => (
           <div className="strip__lane" key={`lane-${lineIndex}`}>
             <div className="strip__connection strip__connection--top"></div>
-            {pxs.map(({ color, index }) => {
-              const updateColor = (pixel) => {
-                setPixels([
-                  ...pixels.slice(0, pixel.index),
-                  pixel,
-                  ...pixels.slice(pixel.index + 1, pixels.length),
-                ]);
-              };
-              return (
-                <div className="strip__pixel" key={`pixel-${index}`}>
-                  <Pixel
-                    hideLabel={hidePixelLabel}
-                    color={color}
-                    index={index}
-                    onHover={
-                      isPaintOn
-                        ? ({ index }) =>
-                            updateColor({ index, color: paintColor })
-                        : null
-                    }
-                    onChangeColor={updateColor}
-                  />
-                </div>
-              );
-            })}
+            {pxs.map(renderPixels)}
             <div className="strip__connection strip__connection--bottom"></div>
           </div>
         ))}

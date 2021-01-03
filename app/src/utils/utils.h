@@ -3,5 +3,6 @@
 
 const bool validRGB(int r, int g, int b);
 const bool validBrightness(int v);
+const bool validEffect(int v);
 
 #endif

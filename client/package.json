@@ -3,25 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^9.5.0",
-    "@testing-library/user-event": "^7.2.1",
+    "@activejs/core": "^0.2.3",
+    "@reach/router": "^1.3.4",
     "axios": "^0.19.2",
+    "module-alias": "^2.2.2",
     "react": "^16.13.1",
     "react-color": "^2.18.1",
     "react-dom": "^16.13.1",
-    "react-scripts": "3.4.1"
+    "rxjs": "^6.6.3"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4",
+    "postcss-modules": "^3.2.2",
+    "sass": "^1.26.11",
+    "tailwindcss": "^1.9.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "parcel ./src/index.html",
+    "watch": "parcel watch ./src/index.html",
+    "build": "parcel build --experimental-scope-hoisting "
   },
   "_moduleAliases": {
-    "@root": ".",
-    "@styles": "src/styles",
-    "@components": "src/components"
+    "~root": ".",
+    "~": "./src",
+    "~styles": "./src/styles",
+    "~components": "./src/components",
+    "~config": "./src/config",
+    "~api": "./src/api",
+    "~utils": "./src/utils"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -37,9 +46,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "node-sass": "^4.14.1",
-    "request": "^2.88.2"
   }
 }

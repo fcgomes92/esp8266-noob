@@ -3,14 +3,11 @@ import mqtt from 'async-mqtt';
 let client;
 
 export const COMMANDS = {
-  fill: 0,
-  brightness: 1,
-  clear: 2,
-  toggleEffect: 3,
-  setPixels: 4,
+  setColor: 0,
+  setBrightness: 1,
+  setEffect: 3,
+  setSpeed: 4,
   getState: 5,
-  configureBreath: 6,
-  configureRainbow: 7,
 };
 
 export const getMQTTClient = async db => {
@@ -20,14 +17,23 @@ export const getMQTTClient = async db => {
     console.log(`Payload: ${topic}: ${payload}`);
     try {
       const data = JSON.parse(payload);
-      switch (topic) {
-        case 'office/lights/status': {
-          if (data.id)
-            await db.lights.upsert({
-              id: data.id,
-              path: topic.replace('/status', ''),
-              ...(data.effect ? { selectedEffect: data.effect } : {}),
-            });
+      const [place, type] = topic.split('/');
+      switch (type) {
+        case 'lights': {
+          if (data.id) {
+            await Promise.all([
+              db.lights.upsert({
+                id: data.id,
+                path: topic.replace('/status', ''),
+                color: `#${Number(data.color).toString(16)}`,
+                speed: data.speed,
+                effect: data.effect,
+              }),
+              db.places.upsert({
+                name: place,
+              }),
+            ]);
+          }
           break;
         }
       }

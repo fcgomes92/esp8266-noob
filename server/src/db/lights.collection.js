@@ -12,20 +12,17 @@ export default {
         type: 'string',
         default: '',
       },
-      isEffectActive: {
-        type: 'boolean',
-        default: true,
-      },
-      selectedEffect: {
+      effect: {
         type: 'number',
         default: 1,
       },
-      pixels: {
-        type: 'array',
-        default: [],
-        items: {
-          type: 'string',
-        },
+      color: {
+        type: 'string',
+        default: 1,
+      },
+      speed: {
+        type: 'number',
+        default: 1,
       },
     },
     indexes: ['id'],

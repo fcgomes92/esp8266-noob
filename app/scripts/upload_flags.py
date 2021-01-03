@@ -20,7 +20,14 @@ def getEnvContent(root):
 def main():
     content = getEnvContent('./')
     for line in content.split('\n'):
+        if not line:
+            continue
+        
         variable, value = line.split('=')
+        
+        if variable.startswith('#'):
+            continue
+
         if variable.startswith('--'):
             env.Append(UPLOAD_FLAGS=[line])
         else:

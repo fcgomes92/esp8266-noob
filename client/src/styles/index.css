@@ -1,0 +1,59 @@
+:root {
+  --main-bg: theme("colors.white");
+  --main-text-color: theme("colors.black");
+
+  --strips-list-container-bg: theme("colors.gray.200");
+  --strips-list-item-bg: theme("colors.gray.300");
+  --strips-list-item-color: theme("colors.gray.800");
+  --strips-list-item-selected-border-color: theme("colors.gray.800");
+}
+
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Open Sans", sans-serif;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+main.dark-theme {
+  --strips-list-container-bg: theme("colors.purple.900");
+  --strips-list-item-bg: theme("colors.gray.900");
+  --strips-list-item-color: theme("colors.white");
+  --strips-list-item-selected-border-color: theme("colors.gray.300");
+
+  --strip-card-background: theme("colors.gray.800");
+
+  --main-bg: theme("colors.gray.900");
+  --main-text-color: theme("colors.white");
+
+  --color-picker-bg: theme("colors.gray.800");
+}
+
+main {
+  background-color: var(--main-bg);
+  color: var(--main-text-color);
+  display: flex;
+}
+
+@media (min-width: 75em) {
+  .strips-list-container {
+    width: 20vw;
+  }
+}
+
+@media (min-width: 100em) {
+  .strips-list-container {
+    width: 20rem;
+  }
+}
