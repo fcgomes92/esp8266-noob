@@ -23,9 +23,9 @@ jobs:
         with:
           name: build-files
           path: /var/www/esp8266-server
-      - name: 
+      - name: install dependencies
+        run: npm run ci --production
         working-directory: /var/www/esp8266-server
-        run: npm run ci
-      - name: 
-        working-directory: /var/www/esp8266-server
+      - name: run on PM2
         run: npm run run
+        working-directory: /var/www/esp8266-server
