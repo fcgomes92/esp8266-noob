@@ -13,6 +13,7 @@ jobs:
           path: server/lib
 
   deploy:
+    needs: build
     runs-on: self-hosted
     steps:
       - uses: actions/download-artifact@v2.0.7
