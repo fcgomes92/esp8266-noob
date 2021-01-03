@@ -9,13 +9,13 @@ jobs:
       - run: cd server && npm install --no-production && npm run build
       - uses: actions/upload-artifact@v2.2.1
         with:
-          name: upload build files
+          name: build-files
           path: server/lib
 
   deploy:
     runs-on: self-hosted
     steps:
-      - uses: actions/download-artifact@v2.0.7
+      - uses: actions/download-artifact@v2.2.1
         with:
-          name: download build files
+          name: build-files
           path: /var/www/esp8266-server
