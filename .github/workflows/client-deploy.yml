@@ -1,0 +1,16 @@
+name: server-deploy
+on: [push]
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - name:
+        run: cd client && npm install --no-production && npm run build
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: copy dist files
+        run: cp -R client/dist/* /var/www/esp8266-client
