@@ -205,6 +205,7 @@ void setup()
     wm.setConnectTimeout(60);
     wm.setBreakAfterConfig(true);
     wm.setSaveConfigCallback(saveWifiCallback);
+    wm.setCleanConnect(true);
 
     if (!wm.autoConnect() || config.enablePortal)
     {

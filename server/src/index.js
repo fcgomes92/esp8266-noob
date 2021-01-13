@@ -12,7 +12,20 @@ import { setSpeed } from './routes/speed';
 
 const app = express();
 
-app.use(cors({ optionsSuccessStatus: 200 }));
+app.use(
+  cors({
+    optionsSuccessStatus: 200,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+      const allowedOrigins = (process.env.CORS_ROUTES || '').split(';');
+      if (allowedOrigins.indexOf(origin) === -1) {
+        return callback(new Error('Request not allowed'), false);
+      }
+
+      return callback(null, true);
+    },
+  })
+);
 
 app.use(async (req, res, next) => {
   req.db = await getDatabaseClient();
@@ -92,5 +105,5 @@ server.listen(process.env.PORT, async () => {
   const db = await getDatabaseClient();
   await getMQTTClient(db);
   console.log(`Server started on port ${server.address().port}`);
-  process.send('ready');
+  process.emit('ready');
 });
