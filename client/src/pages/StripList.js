@@ -7,16 +7,8 @@ import "../styles/components/Strip.scss";
 
 export const stripsListUnit = new DictUnit({
   initialValue: {
-    ids: [1],
-    byID: {
-      1: {
-        id: "1",
-        path: "office/lights",
-        effect: 0,
-        speed: 3000,
-        color: "#112233",
-      },
-    },
+    ids: [],
+    byID: {},
   },
 });
 
