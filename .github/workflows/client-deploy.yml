@@ -1,11 +1,42 @@
+# name: client-deploy
+# on: [push]
+# jobs:
+#   deploy:
+#     runs-on: self-hosted
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: build project
+#         env: # Or as an environment variable
+#           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+#         run: cd client && npm ci --no-production && npm run build
+#       - name: copy dist files
+#         run: cp -R client/dist/* /var/www/esp8266-client
+
 name: client-deploy
 on: [push]
 jobs:
-  deploy:
-    runs-on: self-hosted
+  build:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
       - name: build project
-        run: cd client && npm ci --no-production && npm run build
-      - name: copy dist files
-        run: cp -R client/dist/* /var/www/esp8266-client
+        env: # Or as an environment variable
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+        run: cd client && npm install --no-production && npm run build
+      - uses: actions/upload-artifact@v2.2.1
+        with:
+          name: client-build-files
+          path: |
+            client/dist/*
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: delete old version
+        run: rm -rd /var/www/esp8266-client/*
+      - uses: actions/download-artifact@v2.0.7
+        with:
+          name: client-build-files
+          path: /var/www/esp8266-client

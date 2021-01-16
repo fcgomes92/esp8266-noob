@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'esp8266-server',
-      script: './index.js',
+      script: './lib/index.js',
       instances: 1,
       kill_timeout: 3000,
       wait_ready: true,
